@@ -160,29 +160,70 @@ def evaluate_rules(
                     except ValueError:
                         pass
 
-        # 5. Historical Consistency & Student-Faculty Ratio
-        elif rule_id in ["RULE-HISTORY-INTAKE-FACULTY", "RULE-STUDENT-FACULTY-RATIO"]:
+        # 5. Historical Growth Consistency
+        elif rule_id == "RULE-HISTORY-INTAKE-FACULTY":
             intake = norm_app.get("proposed_intake")
             faculty = norm_app.get("faculty_count")
-            
+            res_doc = docs_by_type.get("aicte_affiliation_resolution")
+            doc_intake = 360
+            if res_doc:
+                doc_ext = extracted_fields.get(res_doc["id"], {})
+                raw_val = doc_ext.get("proposed_intake", {}).get("value")
+                if raw_val:
+                    try:
+                        doc_intake = int(raw_val)
+                    except ValueError:
+                        pass
+
+            if intake and faculty:
+                try:
+                    intake_num = int(intake)
+                    faculty_num = int(faculty)
+                    if intake_num > doc_intake:
+                        growth_pct = ((intake_num - doc_intake) / doc_intake) * 100.0
+                        findings.append({
+                            "id": f"FND-{app_id}-{rule_id}-GROWTH",
+                            "application_id": app_id,
+                            "rule_id": rule_id,
+                            "type": "history_mismatch",
+                            "severity": "high",
+                            "status": "Open",
+                            "field_or_claim": "Historical Academic Cadre Growth",
+                            "extracted_value": f"{intake_num} proposed seats ({faculty_num} faculty)",
+                            "comparison_value": f"{doc_intake} sanctioned baseline (+{growth_pct:.1f}% unapproved expansion)",
+                            "source_document": docs_by_type.get("faculty_appointment_register", {}).get("filename", "Faculty Appointment Register"),
+                            "page_or_field": "Academic Cadre History",
+                            "reason": f"Unsanctioned +{growth_pct:.1f}% intake surge from {doc_intake} to {intake_num} seats claimed without proportional expansion of the existing {faculty_num} faculty members.",
+                            "verification_status": "Inconsistent",
+                            "recommended_next_step": "Hold seat expansion until institutional cadre committee approves appointment of corresponding teaching staff.",
+                            "rule_source": rule_source,
+                            "details_json": {"proposed": intake_num, "baseline": doc_intake, "growth_pct": growth_pct, "faculty": faculty_num}
+                        })
+                except Exception:
+                    pass
+
+        # 6. Student-to-Faculty Statutory Ratio Norm
+        elif rule_id == "RULE-STUDENT-FACULTY-RATIO":
+            intake = norm_app.get("proposed_intake")
+            faculty = norm_app.get("faculty_count")
             if intake and faculty:
                 try:
                     intake_num = int(intake)
                     faculty_num = int(faculty)
                     ratio = intake_num / faculty_num if faculty_num > 0 else 999.0
-                    
+
                     if ratio > 15.0:
                         min_faculty = (intake_num + 14) // 15
                         findings.append({
                             "id": f"FND-{app_id}-{rule_id}-RATIO",
                             "application_id": app_id,
                             "rule_id": rule_id,
-                            "type": "history_mismatch" if rule_id == "RULE-HISTORY-INTAKE-FACULTY" else "infra_gap",
+                            "type": "infra_gap",
                             "severity": "high",
                             "status": "Open",
-                            "field_or_claim": "Student-to-Faculty Ratio",
+                            "field_or_claim": "Student-to-Faculty Ratio (1:15 Norm)",
                             "extracted_value": f"1:{ratio:.1f} ({faculty_num} faculty for {intake_num} intake)",
-                            "comparison_value": f"1:15 Statutory Ratio (Requires {min_faculty} faculty)",
+                            "comparison_value": f"1:15 Statutory Norm (Requires {min_faculty} faculty)",
                             "source_document": docs_by_type.get("faculty_appointment_register", {}).get("filename", "Faculty Cadre List"),
                             "page_or_field": "Faculty Roster Summary",
                             "reason": f"Proposed intake ({intake_num}) with {faculty_num} appointed faculty results in a 1:{ratio:.1f} ratio, violating statutory norm (minimum 1:15).",

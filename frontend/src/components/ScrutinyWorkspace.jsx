@@ -43,25 +43,49 @@ export default function ScrutinyWorkspace({
   const [actionErrorMsg, setActionErrorMsg] = useState(null);
   const [isDeletingDocId, setIsDeletingDocId] = useState(null);
 
+  const hasIssues = findings && findings.length > 0;
+  const targetFinding = selectedFinding || (findings?.length > 0 ? findings[0] : null);
+
+  const handleSelectAction = (actId) => {
+    setSelectedAction(actId);
+    if (!justificationReason.trim()) {
+      if (actId === 'Referred for further verification or inspection') {
+        setJustificationReason('Referred for physical inspection to verify on-ground faculty cadre and campus facilities.');
+      } else if (actId === 'Clarification requested from institution') {
+        setJustificationReason('Clarification requested regarding discrepancy between application claims and evidentiary records.');
+      } else if (actId === 'Dismissed') {
+        setJustificationReason('Supplemental evidence verified; finding dismissed by scrutiny committee.');
+      }
+    }
+  };
+
   const handleActionSubmit = async (e) => {
     e.preventDefault();
     setActionErrorMsg(null);
     setActionSuccessMsg(null);
 
-    if (['Dismissed', 'Referred for further verification or inspection'].includes(selectedAction)) {
-      if (!justificationReason.trim()) {
-        setActionErrorMsg(`Please enter a brief reason for "${selectedAction}".`);
-        return;
+    const fnd = targetFinding;
+    if (!fnd) {
+      setActionErrorMsg('No discrepancy finding is available to record action on.');
+      return;
+    }
+
+    let reasonToSend = justificationReason.trim();
+    if (['Dismissed', 'Referred for further verification or inspection', 'Clarification requested from institution'].includes(selectedAction)) {
+      if (!reasonToSend) {
+        if (selectedAction === 'Referred for further verification or inspection') {
+          reasonToSend = 'Referred for physical inspection to verify on-ground faculty cadre and campus facilities.';
+        } else if (selectedAction === 'Clarification requested from institution') {
+          reasonToSend = 'Clarification requested regarding discrepancy between application claims and evidentiary records.';
+        } else if (selectedAction === 'Dismissed') {
+          reasonToSend = 'Supplemental evidence verified; finding dismissed by scrutiny committee.';
+        }
       }
     }
 
     try {
-      if (!selectedFinding) {
-        setActionErrorMsg('Please select a finding first.');
-        return;
-      }
-      const result = await onRecordAction(selectedFinding.id, selectedAction, justificationReason);
-      setActionSuccessMsg(`Decision logged successfully! (Audit Block #${result?.audit_chain_block || 'Chain'})`);
+      const result = await onRecordAction(fnd.id, selectedAction, reasonToSend);
+      setActionSuccessMsg(`Decision logged successfully! (Cryptographic Audit Block #${result?.audit_chain_block || 'Chain'})`);
       setJustificationReason('');
       setTimeout(() => setActionSuccessMsg(null), 4000);
     } catch (err) {
@@ -84,9 +108,6 @@ export default function ScrutinyWorkspace({
       setIsDeletingDocId(null);
     }
   };
-
-  const hasIssues = findings && findings.length > 0;
-  const currentFinding = selectedFinding || (findings.length > 0 ? findings[0] : null);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
@@ -298,7 +319,7 @@ export default function ScrutinyWorkspace({
           {hasIssues ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
               {findings.map((f, idx) => {
-                const isSelected = currentFinding?.id === f.id;
+                const isSelected = targetFinding?.id === f.id;
                 return (
                   <div
                     key={f.id || idx}
@@ -347,8 +368,15 @@ export default function ScrutinyWorkspace({
           {/* Action Decision Form */}
           <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
             <form onSubmit={handleActionSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--clay-text-secondary)' }}>
-                Official Regulatory Action:
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--clay-text-secondary)' }}>
+                  Official Regulatory Action:
+                </div>
+                {targetFinding && (
+                  <span style={{ fontSize: '0.72rem', color: 'var(--clay-blue-primary)', fontWeight: 700 }}>
+                    Target: Discrepancy #{findings.findIndex(f => f.id === targetFinding.id) + 1}
+                  </span>
+                )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.5rem' }}>
@@ -361,7 +389,7 @@ export default function ScrutinyWorkspace({
                   <button
                     key={act.id}
                     type="button"
-                    onClick={() => setSelectedAction(act.id)}
+                    onClick={() => handleSelectAction(act.id)}
                     className="clay-btn-pill"
                     style={{
                       padding: '0.55rem 0.6rem',

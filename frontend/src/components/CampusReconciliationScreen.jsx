@@ -175,7 +175,7 @@ export default function CampusReconciliationScreen({
 
           <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
             <button
-              onClick={() => onOpenDocViewer && onOpenDocViewer('faculty_list')}
+              onClick={() => onOpenDocViewer && onOpenDocViewer('Chitkara_Engineering_Faculty_Sharma.pdf')}
               className="clay-btn-pill clay-btn-white"
               style={{ width: '100%', fontSize: '0.82rem' }}
             >
@@ -225,7 +225,7 @@ export default function CampusReconciliationScreen({
 
           <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
             <button
-              onClick={() => onOpenDocViewer && onOpenDocViewer('land_deed')}
+              onClick={() => onOpenDocViewer && onOpenDocViewer('Central_Facility_Partition_Deed.pdf')}
               className="clay-btn-pill clay-btn-white"
               style={{ width: '100%', fontSize: '0.82rem' }}
             >
