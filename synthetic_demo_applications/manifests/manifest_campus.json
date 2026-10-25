@@ -1,0 +1,40 @@
+{
+  "scenario": "campus_reconciliation",
+  "campus_id": "CAMPUS-VV-01",
+  "campus_name": "Vidya Vihar Integrated Knowledge Campus",
+  "handbook_edition": "AICTE Approval Process Handbook (APH 2024-25 to 2026-27)",
+  "documents": [
+    {
+      "filename": "Building_Block_A_Partition_Dispute.pdf",
+      "filesize_bytes": 2830,
+      "sha256": "639c58fa117eee9fc7378420854b0672c6aac8a8933a93f1d9efa1c671f87dac",
+      "path": "campus_reconciliation\\Building_Block_A_Partition_Dispute.pdf"
+    },
+    {
+      "filename": "Chitkara_Engineering_Faculty_Sharma.pdf",
+      "filesize_bytes": 2760,
+      "sha256": "497af893908b0ba1773bf2371e36c258abcf0dd4b08115c03e5e9c8b411a84ed",
+      "path": "campus_reconciliation\\Chitkara_Engineering_Faculty_Sharma.pdf"
+    },
+    {
+      "filename": "Vidya_Pharmacy_Faculty_Sharma.pdf",
+      "filesize_bytes": 2735,
+      "sha256": "f40aafb485b5822e73a42d73287e8943cc6915cb9063b51ff025473b76c1aa2d",
+      "path": "campus_reconciliation\\Vidya_Pharmacy_Faculty_Sharma.pdf"
+    }
+  ],
+  "expected_conflicts": [
+    {
+      "type": "FACULTY_DOUBLE_COUNT",
+      "person": "Dr. Rajesh Sharma",
+      "conflict": "Claimed 100% full-time regular by Chitkara Engineering AND Vidya Pharmacy",
+      "clause": "AICTE APH 2024-27 Annexure 5.2"
+    },
+    {
+      "type": "FACILITY_OVER_ALLOCATION",
+      "facility": "Building Block A (1,800 sq.m)",
+      "conflict": "Claimed exclusively by Chitkara Engineering AND Vidya Management without registered partition",
+      "clause": "AICTE APH 2024-27 Annexure 3 Note i"
+    }
+  ]
+}

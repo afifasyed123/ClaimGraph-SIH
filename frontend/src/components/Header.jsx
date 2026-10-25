@@ -69,7 +69,7 @@ export default function Header({
               </span>
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-              SIH 2026 PS5 • Evidence-Linked Scrutiny & Change-Impact Platform
+              Evidence-Linked Scrutiny & Regulatory Verification Platform
             </div>
           </div>
         </div>

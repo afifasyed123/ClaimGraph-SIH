@@ -1,0 +1,15 @@
+{
+  "institution_id": "INST-BHARAT-02",
+  "institution_name": "Bharat College of Engineering & Technology",
+  "application_reference": "AICTE/2026/BHARAT-0481",
+  "programme": "Engineering and Technology",
+  "proposed_intake": 480,
+  "faculty_count": 18,
+  "carpet_area_sqm": 2800.0,
+  "land_acres": 1.5,
+  "fire_noc_valid_till": "2025-12-31",
+  "aicte_clauses": {
+    "sfr": "AICTE APH 2024-27 Annexure 5.2 (UG SFR 1:20 requires >= 24 faculty for 480 intake)",
+    "safety": "AICTE APH 2024-27 Clause 6.47 (Active Fire Safety Certificate mandatory)"
+  }
+}

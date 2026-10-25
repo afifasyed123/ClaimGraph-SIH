@@ -1,0 +1,49 @@
+{
+  "scenario": "case_c",
+  "generated_at": "2026-03-15",
+  "handbook_edition": "AICTE Approval Process Handbook (APH 2024-25 to 2026-27)",
+  "watermark": "SYNTHETIC DEMO DOCUMENT \u2014 NOT AN OFFICIAL AICTE DOCUMENT",
+  "institution": "Chitkara Institute of Technology",
+  "documents": [
+    {
+      "filename": "Application_Form_EoA_2026.pdf",
+      "filesize_bytes": 2695,
+      "sha256": "9b3b9b300e97024fbecd3d00ff1aeb1f859aedcc1c0932bf8d774b6d09c6ac11",
+      "path": "case_C_conflicting\\Application_Form_EoA_2026.pdf"
+    },
+    {
+      "filename": "Fire_Safety_NOC.pdf",
+      "filesize_bytes": 2585,
+      "sha256": "278735b03d55b0733617f6a90da7d9bf967e13ccb7b12b9d958c59c384738ab5",
+      "path": "case_C_conflicting\\Fire_Safety_NOC.pdf"
+    },
+    {
+      "filename": "Governing_Body_Resolution_360_Seats.pdf",
+      "filesize_bytes": 2760,
+      "sha256": "253a52e80e9259de7b4bd5622ea2e22d32ae4040876dd91b90d47a388d84b119",
+      "path": "case_C_conflicting\\Governing_Body_Resolution_360_Seats.pdf"
+    },
+    {
+      "filename": "Land_Registration_Deed_Duplicate.pdf",
+      "filesize_bytes": 2585,
+      "sha256": "278735b03d55b0733617f6a90da7d9bf967e13ccb7b12b9d958c59c384738ab5",
+      "path": "case_C_conflicting\\Land_Registration_Deed_Duplicate.pdf"
+    }
+  ],
+  "expected_findings": [
+    {
+      "rule_id": "RULE-INTAKE-CONSISTENCY",
+      "severity": "HIGH",
+      "summary": "Application Intake Exceeds Sanctioned Resolution",
+      "details": "Application Form claims 480 seats, but Governing Body Resolution explicitly approved 360 seats.",
+      "clause": "AICTE APH 2024-27 Chapter II"
+    },
+    {
+      "rule_id": "RULE-DUPLICATE-FILE",
+      "severity": "MEDIUM",
+      "summary": "Duplicate Document File Upload Detected",
+      "details": "Land_Registration_Deed_Duplicate.pdf is byte-identical (SHA-256 match) to Fire_Safety_NOC.pdf.",
+      "clause": "AICTE APH 2024-27 Chapter VII Clause 7.4"
+    }
+  ]
+}

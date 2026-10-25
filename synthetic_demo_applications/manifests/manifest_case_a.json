@@ -1,0 +1,34 @@
+{
+  "scenario": "case_a",
+  "generated_at": "2026-03-15",
+  "handbook_edition": "AICTE Approval Process Handbook (APH 2024-25 to 2026-27)",
+  "watermark": "SYNTHETIC DEMO DOCUMENT \u2014 NOT AN OFFICIAL AICTE DOCUMENT",
+  "institution": "Apex Institute of Technology & Engineering",
+  "documents": [
+    {
+      "filename": "Application_Form_EoA_2026.pdf",
+      "filesize_bytes": 2761,
+      "sha256": "c5bfd4378252cbc26de69bb216516494d36e7e97d364e18d134e002f85e3c17d",
+      "path": "case_A_consistent\\Application_Form_EoA_2026.pdf"
+    },
+    {
+      "filename": "Faculty_Roster_Annexure_5.pdf",
+      "filesize_bytes": 2913,
+      "sha256": "9f1dd662233e3d37291b95dc00be70d902eb60c1b88ed120996ae666199418e8",
+      "path": "case_A_consistent\\Faculty_Roster_Annexure_5.pdf"
+    },
+    {
+      "filename": "Fire_Safety_NOC_Requirement_6_47.pdf",
+      "filesize_bytes": 2676,
+      "sha256": "569c1f507c7011de1d8fb7bf40b4c052f5128310710935a6adcc026008c8f110",
+      "path": "case_A_consistent\\Fire_Safety_NOC_Requirement_6_47.pdf"
+    },
+    {
+      "filename": "Land_Deed_and_Floor_Plan_Annexure_3.pdf",
+      "filesize_bytes": 2735,
+      "sha256": "af70de5783f66d6d1f1d887db6ed675cc6300966b9555fbb0cb4a54749bc527d",
+      "path": "case_A_consistent\\Land_Deed_and_Floor_Plan_Annexure_3.pdf"
+    }
+  ],
+  "expected_findings": []
+}

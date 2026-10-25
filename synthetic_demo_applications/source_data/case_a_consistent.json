@@ -1,0 +1,16 @@
+{
+  "institution_id": "INST-APEX-01",
+  "institution_name": "Apex Institute of Technology & Engineering",
+  "application_reference": "AICTE/2026/APEX-0192",
+  "programme": "Engineering and Technology",
+  "proposed_intake": 360,
+  "faculty_count": 24,
+  "carpet_area_sqm": 3200.0,
+  "land_acres": 2.5,
+  "fire_noc_valid_till": "2027-06-30",
+  "aicte_clauses": {
+    "sfr": "AICTE APH 2024-27 Annexure 5.2 (UG Degree Engineering SFR 1:20)",
+    "land": "AICTE APH 2024-27 Annexure 3.1 (Urban/Metro Land & FSI Norms)",
+    "space": "AICTE APH 2024-27 Annexure 3.2 (1.1 sq.m instructional area per student)"
+  }
+}

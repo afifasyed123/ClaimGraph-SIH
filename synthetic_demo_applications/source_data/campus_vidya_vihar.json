@@ -1,0 +1,37 @@
+{
+  "campus_id": "CAMPUS-VV-01",
+  "campus_name": "Vidya Vihar Integrated Knowledge Campus",
+  "location": "Plot 14-B, Sector 62, Greater Noida, UP - 201309",
+  "total_land_acres": 14.5,
+  "total_built_up_sqm": 12500.0,
+  "institutions": [
+    {
+      "id": "INST-CHITKARA-03",
+      "name": "Chitkara Institute of Technology",
+      "programme": "Engineering and Technology",
+      "claims": {
+        "shared_faculty": "Dr. Rajesh Sharma (Professor, Computer Science)",
+        "exclusive_building": "Building Block A (1,800 sq.m)"
+      }
+    },
+    {
+      "id": "INST-VIDYA-PHARM",
+      "name": "Vidya College of Pharmacy",
+      "programme": "Pharmacy",
+      "claims": {
+        "shared_faculty": "Dr. Rajesh Sharma (Professor, Biostatistics)",
+        "exclusive_building": "Building Block B (1,500 sq.m)"
+      }
+    },
+    {
+      "id": "INST-VIDYA-MGMT",
+      "name": "Vidya Institute of Management",
+      "programme": "Management",
+      "claims": {
+        "shared_faculty": "None",
+        "exclusive_building": "Building Block A (1,800 sq.m)"
+      }
+    }
+  ],
+  "aicte_rule": "AICTE APH 2024-27 Annexure 3 Note i: Shared campus institutions cannot double-claim faculty or essential instructional classrooms without legal partition."
+}

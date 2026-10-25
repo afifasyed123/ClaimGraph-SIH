@@ -1,0 +1,50 @@
+{
+  "scenario": "case_b",
+  "generated_at": "2026-03-15",
+  "handbook_edition": "AICTE Approval Process Handbook (APH 2024-25 to 2026-27)",
+  "watermark": "SYNTHETIC DEMO DOCUMENT \u2014 NOT AN OFFICIAL AICTE DOCUMENT",
+  "institution": "Bharat College of Engineering & Technology",
+  "documents": [
+    {
+      "filename": "Application_Form_EoA_2026.pdf",
+      "filesize_bytes": 2738,
+      "sha256": "87bce36535268db136db85ae8506eacc4a5704768f4c8185530cc7e550eafcbd",
+      "path": "case_B_deficient\\Application_Form_EoA_2026.pdf"
+    },
+    {
+      "filename": "Faculty_Roster_Annexure_5.pdf",
+      "filesize_bytes": 2738,
+      "sha256": "8d5342de576abf9a0c7076c8bb2e4f13fa2a415d91f69f688e891a6be64153ea",
+      "path": "case_B_deficient\\Faculty_Roster_Annexure_5.pdf"
+    },
+    {
+      "filename": "Fire_Safety_NOC_Expired.pdf",
+      "filesize_bytes": 2666,
+      "sha256": "0995a3461e84baae88bee7c28446fa28cf0180909af8252ac7da5f2c3b94e86d",
+      "path": "case_B_deficient\\Fire_Safety_NOC_Expired.pdf"
+    }
+  ],
+  "expected_findings": [
+    {
+      "rule_id": "RULE-SFR-01",
+      "severity": "HIGH",
+      "summary": "Faculty Count Deficit for Proposed Intake",
+      "details": "Proposed intake of 480 requires minimum 24 faculty (SFR 1:20). Only 18 faculty available. Deficit of 6.",
+      "clause": "AICTE APH 2024-27 Annexure 5.2"
+    },
+    {
+      "rule_id": "RULE-FIRE-NOC-01",
+      "severity": "HIGH",
+      "summary": "Expired Fire & Life Safety Certificate",
+      "details": "Fire Safety Certificate expired on 2025-12-31 relative to 2026-03-15 evaluation baseline date.",
+      "clause": "AICTE APH 2024-27 Chapter VI Requirement 6.47"
+    },
+    {
+      "rule_id": "RULE-LAND-CERT-01",
+      "severity": "HIGH",
+      "summary": "Mandatory Land Ownership Deed Missing",
+      "details": "Land Title Deed / Ownership Certificate was not submitted with application.",
+      "clause": "AICTE APH 2024-27 Annexure 3.1"
+    }
+  ]
+}

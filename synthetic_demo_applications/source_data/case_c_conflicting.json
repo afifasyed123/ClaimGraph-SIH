@@ -1,0 +1,14 @@
+{
+  "institution_id": "INST-CHITKARA-03",
+  "institution_name": "Chitkara Institute of Technology",
+  "application_reference": "AICTE/2026/CHITKARA-0819",
+  "programme": "Engineering and Technology",
+  "application_intake": 480,
+  "resolution_intake": 360,
+  "faculty_count": 22,
+  "carpet_area_sqm": 2900.0,
+  "aicte_clauses": {
+    "intake_consistency": "AICTE APH 2024-27 Chapter II (Application intake must match Governing Body resolution)",
+    "duplicate": "AICTE APH 2024-27 Chapter VII Clause 7.4 (Duplicate/Tampered documentation check)"
+  }
+}

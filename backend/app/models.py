@@ -69,3 +69,21 @@ class ApplicationCreate(BaseModel):
     faculty_count: Optional[int] = None
     carpet_area_sqm: Optional[float] = None
     demo_case_key: Optional[str] = None  # 'case_a', 'case_b', 'case_c'
+
+class CampusSimulationRequest(BaseModel):
+    campus_id: str = "CAMPUS-VV-01"
+    target_institution_id: Optional[str] = None
+    proposed_intake: Optional[int] = None
+    faculty_count: Optional[int] = None
+    faculty_reallocation: Optional[str] = None # 'exclusive_apex', 'exclusive_pharm', 'split_50_50', or 'unchanged'
+    facility_repartition: Optional[str] = None # 'partition_600_600', 'full_apex', 'full_mgmt', or 'unchanged'
+
+class DeficiencyNoticeCreate(BaseModel):
+    application_id: str
+    reviewer_name: Optional[str] = "AICTE Scrutiny Officer"
+    clarifications_note: Optional[str] = ""
+
+class RuleToggleRequest(BaseModel):
+    is_active: bool
+    threshold: Optional[Any] = None
+
