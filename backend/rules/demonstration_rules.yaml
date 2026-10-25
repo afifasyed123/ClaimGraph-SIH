@@ -1,0 +1,88 @@
+# ClaimGraph-AICTE Demonstration Rules
+# NOTE: All rules are strictly demonstration rules for the SIH 2026 PS5 prototype.
+# Demonstration rules are not official AICTE requirements.
+
+rules:
+  - id: "RULE-DOC-CHECKLIST"
+    name: "Mandatory Document Checklist Validation"
+    type: "document_presence"
+    inputs: ["documents"]
+    severity: "high"
+    source: "Demonstration Rule - Illustrative Only"
+    description: "Verifies that all mandatory compliance documents for Extension of Approval (EoA) are uploaded."
+    config:
+      required_doc_types:
+        - "aicte_affiliation_resolution"
+        - "land_building_certificate"
+        - "fire_safety_noc"
+        - "faculty_appointment_register"
+
+  - id: "RULE-REQUIRED-FIELDS"
+    name: "Mandatory Application Field Completeness"
+    type: "field_presence"
+    inputs: ["institution_name", "application_reference", "programme", "proposed_intake", "faculty_count"]
+    severity: "high"
+    source: "Demonstration Rule - Illustrative Only"
+    description: "Ensures required institutional fields are populated without blanks or omissions."
+
+  - id: "RULE-DOC-EXPIRY"
+    name: "Regulatory Approval & NOC Validity"
+    type: "date_validity"
+    inputs: ["validity_date", "document_date"]
+    severity: "high"
+    source: "Demonstration Rule - Illustrative Only"
+    description: "Flags regulatory safety NOCs and statutory approvals whose validity expired prior to the assessment cycle."
+    config:
+      demo_cutoff_date: "2026-10-01"
+
+  - id: "RULE-DOC-DATE-FORMAT"
+    name: "Standard Date Format Compliance"
+    type: "date_format"
+    inputs: ["validity_date", "document_date"]
+    severity: "medium"
+    source: "Demonstration Rule - Illustrative Only"
+    description: "Validates standard ISO or DD/MM/YYYY date formats."
+
+  - id: "RULE-INTAKE-EVIDENCE-CROSSCHECK"
+    name: "Application Intake vs Resolution Document Crosscheck"
+    type: "cross_document"
+    inputs: ["proposed_intake"]
+    severity: "high"
+    source: "Demonstration Rule - Illustrative Only"
+    description: "Reconciles the proposed intake submitted in the application against the sanctioned intake in the Governing Resolution PDF."
+
+  - id: "RULE-HISTORY-INTAKE-FACULTY"
+    name: "Historical Academic Growth & Ratio Consistency"
+    type: "history_reconciliation"
+    inputs: ["proposed_intake", "faculty_count"]
+    severity: "high"
+    source: "Demonstration Rule - Illustrative Only"
+    description: "Compares current claims against synthetic historical records (AY 2024-25 and AY 2025-26) to flag unexpected deviations or faculty deficit."
+
+  - id: "RULE-FILE-INTEGRITY-DUPLICATE"
+    name: "Document Fingerprint & Duplicate Hash Detection"
+    type: "file_hash"
+    inputs: ["sha256"]
+    severity: "high"
+    source: "Demonstration Rule - Illustrative Only"
+    description: "Calculates SHA-256 cryptographic digests for every document and flags duplicate file uploads across distinct checklist requirements."
+
+  - id: "RULE-STUDENT-FACULTY-RATIO"
+    name: "Student to Faculty Ratio Compliance (1:15)"
+    type: "ratio_check"
+    inputs: ["proposed_intake", "faculty_count"]
+    severity: "high"
+    source: "Demonstration Rule - Illustrative Only"
+    description: "Verifies whether appointed faculty supports proposed intake within the standard 1:15 ratio guideline."
+    config:
+      max_ratio: 15
+
+  - id: "RULE-INFRASTRUCTURE-CARPET-AREA"
+    name: "Instructional Area Norm Compliance"
+    type: "infrastructure"
+    inputs: ["proposed_intake", "carpet_area_sqm"]
+    severity: "medium"
+    source: "Demonstration Rule - Illustrative Only"
+    description: "Validates minimum instructional floor space (minimum 1.5 sq.m carpet area per student intake)."
+    config:
+      min_area_per_student: 1.5
