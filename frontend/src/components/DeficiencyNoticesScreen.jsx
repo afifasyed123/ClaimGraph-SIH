@@ -184,7 +184,7 @@ export default function DeficiencyNoticesScreen({
                 </div>
               );
             })}
-            </div>
+          </div>
         </div>
 
         {/* Right Column: Clean Official Notice Document View */}
