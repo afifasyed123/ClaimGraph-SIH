@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileWarning, 
   Printer, 
@@ -25,14 +25,20 @@ export default function DeficiencyNoticesScreen({
 }) {
   const [selectedNotice, setSelectedNotice] = useState(notices.length > 0 ? notices[0] : null);
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
-  const [selectedAppId, setSelectedAppId] = useState(activeApplication?.id || 'APP-CASE-B');
+  const [selectedAppId, setSelectedAppId] = useState(activeApplication?.id || (applications.length > 0 ? applications[0].id : 'APP-CASE-B'));
   const [clarificationsNote, setClarificationsNote] = useState('');
   const [validationError, setValidationError] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedHash, setCopiedHash] = useState(false);
 
+  useEffect(() => {
+    if (!selectedNotice && notices.length > 0) {
+      setSelectedNotice(notices[0]);
+    }
+  }, [notices, selectedNotice]);
+
   const handleOpenModal = () => {
-    setTargetAppId(activeApplication?.id || (applications.length > 0 ? applications[0].id : 'APP-CASE-C'));
+    setSelectedAppId(activeApplication?.id || (applications.length > 0 ? applications[0].id : 'APP-CASE-B'));
     setValidationError('');
     setIsGenerateOpen(true);
   };
@@ -46,12 +52,6 @@ export default function DeficiencyNoticesScreen({
     setValidationError('');
   };
 
-  React.useEffect(() => {
-    if (!selectedNotice && notices.length > 0) {
-      setSelectedNotice(notices[0]);
-    }
-  }, [notices, selectedNotice]);
-
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     const trimmed = clarificationsNote.trim();
@@ -59,7 +59,7 @@ export default function DeficiencyNoticesScreen({
       setValidationError('Clarifications note cannot be empty. Please specify the required instructions or rectifications.');
       return;
     }
-    const chosenAppId = targetAppId || activeApplication?.id || (applications.length > 0 ? applications[0].id : 'APP-CASE-C');
+    const chosenAppId = selectedAppId || activeApplication?.id || (applications.length > 0 ? applications[0].id : 'APP-CASE-B');
     if (!chosenAppId) {
       setValidationError('Please select a target application/institution.');
       return;
@@ -69,8 +69,8 @@ export default function DeficiencyNoticesScreen({
     setValidationError('');
     try {
       const newNotice = await onGenerateNotice({
-        application_id: selectedAppId || activeApplication?.id || 'APP-CASE-B',
-        clarifications_note: clarificationsNote || 'Please provide updated land partition deeds, certified faculty appointment registers, and renewed Fire Safety NOC.'
+        application_id: chosenAppId,
+        clarifications_note: trimmed
       });
       setSelectedNotice(newNotice);
       setIsGenerateOpen(false);
@@ -92,9 +92,6 @@ export default function DeficiencyNoticesScreen({
     setCopiedHash(true);
     setTimeout(() => setCopiedHash(false), 2000);
   };
-
-  // Find target app object for display
-  const chosenAppObj = applications.find(a => a.id === targetAppId) || activeApplication;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
@@ -138,53 +135,59 @@ export default function DeficiencyNoticesScreen({
             Issued Deficiency Notices ({notices.length})
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-            {notices.map((n, idx) => {
-              const isSelected = currentNotice?.id === n.id;
-              const dateStr = n.generated_at || n.generated_date;
-              return (
-                <div
-                  key={n.id || idx}
-                  onClick={() => setSelectedNotice(n)}
-                  className="clay-well"
-                  style={{
-                    cursor: 'pointer',
-                    background: isSelected ? '#ffffff' : 'var(--clay-inset-bg)',
-                    boxShadow: isSelected ? 'var(--clay-shadow-small)' : 'var(--clay-shadow-inset-sm)',
-                    border: isSelected ? '2px solid var(--clay-blue-primary)' : '1px solid rgba(160, 178, 206, 0.3)',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--clay-blue-primary)' }}>
-                      {n.notice_number || n.id}
-                    </span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--clay-text-muted)', fontWeight: 600 }}>
-                      {dateStr || '2026-10-01'}
-                    </span>
+          {notices.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--clay-text-muted)', fontSize: '0.85rem' }}>
+              No deficiency notices issued yet. Click "Draft New Deficiency Notice" to issue one.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              {notices.map((n, idx) => {
+                const isSelected = currentNotice?.id === n.id;
+                const dateStr = n.generated_at || n.generated_date;
+                return (
+                  <div
+                    key={n.id || idx}
+                    onClick={() => setSelectedNotice(n)}
+                    className="clay-well"
+                    style={{
+                      cursor: 'pointer',
+                      background: isSelected ? '#ffffff' : 'var(--clay-inset-bg)',
+                      boxShadow: isSelected ? 'var(--clay-shadow-small)' : 'var(--clay-shadow-inset-sm)',
+                      border: isSelected ? '2px solid var(--clay-blue-primary)' : '1px solid rgba(160, 178, 206, 0.3)',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--clay-blue-primary)' }}>
+                        {n.notice_number || n.id}
+                      </span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--clay-text-muted)', fontWeight: 600 }}>
+                        {dateStr || '2026-10-01'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--clay-text-primary)' }}>
+                      {n.institution_name || 'Technical Institution'}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--clay-text-secondary)' }}>
+                        Ref: {n.application_reference || n.reference || 'AICTE-APP-2026'}
+                      </span>
+                      <span style={{
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        padding: '0.15rem 0.55rem',
+                        borderRadius: '50px',
+                        background: '#fef3c7',
+                        color: '#92400e'
+                      }}>
+                        {n.status || 'Issued'}
+                      </span>
+                    </div>
                   </div>
-                  <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--clay-text-primary)' }}>
-                    {n.institution_name || 'Technical Institution'}
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--clay-text-secondary)' }}>
-                      Ref: {n.application_reference || n.reference || 'AICTE-APP-2026'}
-                    </span>
-                    <span style={{
-                      fontSize: '0.68rem',
-                      fontWeight: 700,
-                      padding: '0.15rem 0.55rem',
-                      borderRadius: '50px',
-                      background: '#fef3c7',
-                      color: '#92400e'
-                    }}>
-                      {n.status || 'Issued'}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Right Column: Clean Official Notice Document View */}
@@ -239,18 +242,6 @@ export default function DeficiencyNoticesScreen({
                 </p>
               </div>
 
-              {/* Clarifications Directives */}
-              {currentNotice.clarifications_requested && (
-                <div className="clay-well" style={{ background: '#f8fafc', borderLeft: '4px solid var(--clay-blue-primary)', padding: '0.85rem 1rem' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--clay-blue-primary)', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    Statutory Clarification Directives:
-                  </div>
-                  <div style={{ fontSize: '0.82rem', color: 'var(--clay-text-primary)', whiteSpace: 'pre-line', lineHeight: 1.5 }}>
-                    {currentNotice.clarifications_requested}
-                  </div>
-                </div>
-              )}
-
               {/* Findings List */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                 <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--clay-text-secondary)' }}>
@@ -298,7 +289,7 @@ export default function DeficiencyNoticesScreen({
               {/* Officer Directives & Clarifications Requested */}
               {currentNotice.clarifications_requested && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.25rem' }}>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--clay-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--clay-blue-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     Officer Directive & Clarifications Requested:
                   </div>
                   <div className="clay-well" style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.85rem 1rem', fontSize: '0.82rem', color: '#92400e', whiteSpace: 'pre-line', lineHeight: 1.55 }}>
@@ -309,10 +300,32 @@ export default function DeficiencyNoticesScreen({
 
               {/* Digital Seal & Sign-off */}
               <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-                <div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--clay-text-muted)' }}>Cryptographic SHA-256 Digest:</div>
-                  <div style={{ fontSize: '0.7rem', fontFamily: 'monospace', color: 'var(--clay-text-secondary)' }}>
-                    {(currentNotice.digest || currentNotice.notice_hash) ? (currentNotice.digest || currentNotice.notice_hash).substring(0, 36) + '...' : 'e3b0c44298fc1c149afbf4c8996fb924...'}
+                <div style={{ flex: 1, minWidth: '220px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.2rem' }}>
+                    <Lock size={12} color="var(--clay-text-muted)" />
+                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--clay-text-muted)' }}>
+                      Cryptographic SHA-256 Digest (Public Verification Fingerprint):
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ fontSize: '0.7rem', fontFamily: 'monospace', color: '#1e3a8a', wordBreak: 'break-all', background: '#f8fafc', padding: '0.35rem 0.55rem', borderRadius: '4px', border: '1px solid #e2e8f0', flex: 1 }}>
+                      {activeHash || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}
+                    </div>
+                    {activeHash && (
+                      <button
+                        type="button"
+                        onClick={() => handleCopyHash(activeHash)}
+                        className="clay-btn-pill clay-btn-white"
+                        style={{ padding: '0.25rem 0.55rem', fontSize: '0.7rem' }}
+                        title="Copy public verification hash"
+                      >
+                        {copiedHash ? <Check size={12} color="#15803d" /> : <Copy size={12} />}
+                        <span>{copiedHash ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '0.67rem', color: '#64748b', marginTop: '0.25rem' }}>
+                    Public checksum seal · Not a private key. Used by QR verification to prevent tampering.
                   </div>
                 </div>
 
@@ -337,7 +350,7 @@ export default function DeficiencyNoticesScreen({
       {/* Generate Notice Modal */}
       {isGenerateOpen && (
         <div className="modal-overlay">
-          <div className="modal-content-clay" style={{ maxWidth: '560px' }}>
+          <div className="modal-content-clay" style={{ maxWidth: '580px' }}>
             <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--clay-text-primary)', marginBottom: '0.3rem' }}>
               Draft Statutory Deficiency Notice
             </h2>
@@ -349,43 +362,29 @@ export default function DeficiencyNoticesScreen({
               {/* Institution / Application Selection */}
               <div>
                 <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--clay-text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
-                  Target Institution / Application:
-                </label>
-                <select
-                  value={selectedAppId}
-                  onChange={(e) => setSelectedAppId(e.target.value)}
-                  className="clay-input-clean"
-                  style={{ width: '100%', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-                >
-                  <option value="APP-CASE-B">Case B — Bharat College of Engineering (Deficient / Expired NOC)</option>
-                  <option value="APP-CASE-C">Case C — Chitkara Institute of Technology (Intake Conflict & Duplicate)</option>
-                  <option value="APP-CASE-A">Case A — Apex Institute of Technology (Consistent)</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--clay-text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
-                  Specific Clarifications / Rectification Directives:
+                  Target Institution / Application: <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <div className="clay-well" style={{ padding: '0.25rem 0.5rem' }}>
-                  {applications.length > 0 ? (
-                    <select
-                      value={targetAppId}
-                      onChange={(e) => setTargetAppId(e.target.value)}
-                      className="clay-input-clean"
-                      style={{ width: '100%', padding: '0.5rem', background: 'transparent', fontWeight: 600, color: 'var(--clay-text-primary)' }}
-                    >
-                      {applications.map(app => (
+                  <select
+                    value={selectedAppId}
+                    onChange={(e) => setSelectedAppId(e.target.value)}
+                    className="clay-input-clean"
+                    style={{ width: '100%', padding: '0.5rem', background: 'transparent', fontWeight: 600, color: 'var(--clay-text-primary)' }}
+                  >
+                    {applications && applications.length > 0 ? (
+                      applications.map(app => (
                         <option key={app.id} value={app.id}>
                           {app.name} ({app.reference || app.id})
                         </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <div style={{ padding: '0.5rem', fontSize: '0.85rem', fontWeight: 600 }}>
-                      {chosenAppObj?.name || 'Bharat College of Engineering'} ({chosenAppObj?.reference || 'APP-CASE-C'})
-                    </div>
-                  )}
+                      ))
+                    ) : (
+                      <>
+                        <option value="APP-CASE-B">Case B — Bharat College of Engineering (Deficient / Expired NOC)</option>
+                        <option value="APP-CASE-C">Case C — Chitkara Institute of Technology (Intake Conflict & Duplicate)</option>
+                        <option value="APP-CASE-A">Case A — Apex Institute of Technology (Consistent)</option>
+                      </>
+                    )}
+                  </select>
                 </div>
               </div>
 
@@ -411,10 +410,14 @@ export default function DeficiencyNoticesScreen({
                   <textarea
                     rows={5}
                     value={clarificationsNote}
-                    onChange={(e) => setClarificationsNote(e.target.value)}
+                    onChange={(e) => {
+                      setClarificationsNote(e.target.value);
+                      if (validationError) setValidationError('');
+                    }}
                     placeholder="Enter instructions for college (e.g., Provide registered partition deed for Block A and recruit required faculty before approval)..."
                     className="clay-input-clean"
                     style={{ resize: 'vertical', width: '100%' }}
+                    required
                   />
                 </div>
 
