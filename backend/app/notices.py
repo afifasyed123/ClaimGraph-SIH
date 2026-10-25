@@ -63,11 +63,11 @@ def generate_deficiency_notice(
 
     qr_verification_url = f"/api/reports/verify/{notice_id}"
 
-    clarifications = clarifications_note or (
-        "1. Submit original notarized Governing Body resolution approving intake expansion.\n"
-        "2. Provide biometric staff roster and Form 16 / bank disbursement proofs.\n"
-        "3. Upload valid Municipal Fire Safety NOC renewed for the current academic session."
-    )
+    note = (clarifications_note or "").strip()
+    if not note:
+        raise ValueError("Clarifications note cannot be empty. Specific deficiency rectification instructions are required.")
+
+    clarifications = note
 
     with get_db_context() as conn:
         cursor = conn.cursor()
@@ -127,6 +127,15 @@ def get_deficiency_notice_by_id(notice_id: str) -> Optional[Dict[str, Any]]:
 def list_deficiency_notices() -> List[Dict[str, Any]]:
     with get_db_context() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, application_id, institution_name, reference, generated_date, reviewer_name, notice_hash, status FROM deficiency_notices ORDER BY id DESC")
+        cursor.execute("SELECT * FROM deficiency_notices ORDER BY id DESC")
         rows = cursor.fetchall()
-        return [dict(r) for r in rows]
+        result = []
+        for r in rows:
+            item = dict(r)
+            try:
+                item["deficiency_items"] = json.loads(item.get("findings_json", "[]"))
+            except Exception:
+                item["deficiency_items"] = []
+            item["notice_number"] = item.get("id")
+            result.append(item)
+        return result

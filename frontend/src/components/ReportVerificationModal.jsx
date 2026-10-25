@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, CheckCircle2, AlertTriangle, QrCode, Lock, X } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, AlertTriangle, QrCode, Lock, X, Copy, Check } from 'lucide-react';
 
 export default function ReportVerificationModal({ reportId, onClose }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!reportId) return;
@@ -59,7 +60,7 @@ export default function ReportVerificationModal({ reportId, onClose }) {
               </div>
             </div>
 
-            <div className="clay-inset" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.8rem' }}>
+            <div className="clay-inset" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.8rem' }}>
               <div>
                 <span style={{ color: 'var(--clay-secondary)', fontWeight: 600 }}>Report ID: </span>
                 <strong style={{ fontFamily: 'var(--font-mono)' }}>{data.report_id}</strong>
@@ -81,10 +82,46 @@ export default function ReportVerificationModal({ reportId, onClose }) {
                 </div>
               )}
               {data.stored_hash && (
-                <div>
-                  <div style={{ color: 'var(--clay-secondary)', fontWeight: 600, marginBottom: '0.15rem' }}>Stored Cryptographic Digest (SHA-256):</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: '#1e3a8a', wordBreak: 'break-all', background: '#ffffff', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                <div style={{ marginTop: '0.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <Lock size={13} color="var(--clay-secondary)" />
+                      <span style={{ color: 'var(--clay-secondary)', fontWeight: 700, fontSize: '0.75rem' }}>
+                        Stored Cryptographic Digest (SHA-256):
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(data.stored_hash);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      style={{
+                        background: '#f1f5f9',
+                        border: '1px solid #cbd5e1',
+                        cursor: 'pointer',
+                        color: copied ? '#15803d' : '#1e40af',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        padding: '0.15rem 0.5rem',
+                        borderRadius: '4px',
+                        transition: 'all 0.15s ease'
+                      }}
+                      title="Copy SHA-256 Digest"
+                    >
+                      {copied ? <Check size={12} /> : <Copy size={12} />}
+                      <span>{copied ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: '#1e3a8a', wordBreak: 'break-all', background: '#ffffff', padding: '0.45rem 0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', lineHeight: 1.45 }}>
                     {data.stored_hash}
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: '#475569', marginTop: '0.4rem', lineHeight: 1.45, background: '#eff6ff', padding: '0.45rem 0.65rem', borderRadius: '6px', borderLeft: '3px solid #3b82f6' }}>
+                    <strong>Note:</strong> This is a public cryptographic checksum (digest), <em>not a secret key</em>. It acts as an immutable digital seal so anyone can verify that the document contents have not been modified since issuance.
                   </div>
                 </div>
               )}

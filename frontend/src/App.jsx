@@ -441,6 +441,7 @@ export default function App() {
         {activeScreen === 'notices' && (
           <DeficiencyNoticesScreen
             notices={notices}
+            applications={applications}
             onGenerateNotice={handleGenerateNotice}
             activeApplication={applicationData?.application}
             onVerifyReport={(repId) => setVerifyingReportId(repId)}

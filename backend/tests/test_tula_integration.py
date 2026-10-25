@@ -94,6 +94,21 @@ def test_deficiency_notice_generation_and_report_verification():
     assert rep_data["status"] == "VALID_AND_AUTHENTIC"
     assert rep_data["stored_hash"] == notice["notice_hash"]
 
+    # Verify that generating a notice with empty content is strictly rejected (422)
+    empty_resp = client.post("/api/notices/generate", json={
+        "application_id": "APP-CASE-C",
+        "reviewer_name": "Senior Scrutiny Officer",
+        "clarifications_note": ""
+    })
+    assert empty_resp.status_code == 422
+
+    whitespace_resp = client.post("/api/notices/generate", json={
+        "application_id": "APP-CASE-C",
+        "reviewer_name": "Senior Scrutiny Officer",
+        "clarifications_note": "     "
+    })
+    assert whitespace_resp.status_code == 422
+
 def test_inspection_priority_ranking():
     """Verify transparent priority calculation for campuses and institutions"""
     resp = client.get("/api/inspection-priority")
