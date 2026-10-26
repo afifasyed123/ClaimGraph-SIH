@@ -181,10 +181,10 @@ export default function DeficiencyNoticesScreen({
                       {n.status || 'Issued'}
                     </span>
                   </div>
-                );
-              })}
+                </div>
+              );
+            })}
             </div>
-          )}
         </div>
 
         {/* Right Column: Clean Official Notice Document View */}
