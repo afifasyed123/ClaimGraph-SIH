@@ -336,7 +336,15 @@ export default function App() {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--clay-canvas)' }}>
         <SyntheticBanner />
-        <LoginScreen onLogin={(user) => setCurrentUser(user)} />
+        <LoginScreen onLogin={(user, options) => {
+          setCurrentUser(user);
+          if (options?.targetCase) {
+            handleSelectCase(options.targetCase);
+            setActiveScreen('scrutiny');
+          } else if (options?.targetScreen) {
+            setActiveScreen(options.targetScreen);
+          }
+        }} />
       </div>
     );
   }
@@ -360,9 +368,15 @@ export default function App() {
         {activeScreen === 'overview' && (
           <OverviewScreen
             metrics={metrics}
+            applications={applications}
             demoCases={applications}
+            notices={notices}
             onSelectCase={(caseKey) => {
               handleSelectCase(caseKey);
+              setActiveScreen('scrutiny');
+            }}
+            onSelectAppId={(appId) => {
+              setActiveAppId(appId);
               setActiveScreen('scrutiny');
             }}
             onNavigate={(s) => setActiveScreen(s)}

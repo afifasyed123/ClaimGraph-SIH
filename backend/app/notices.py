@@ -1,6 +1,7 @@
 import hashlib
 import json
 import time
+import uuid
 from typing import Dict, Any, List, Optional
 from .database import get_db_context
 from .config import DEMO_DATE
@@ -55,7 +56,7 @@ def generate_deficiency_notice(
         })
 
     timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    notice_id = f"DEF-NOTICE-{app['reference'].replace('/', '-')}-{int(time.time() % 100000)}"
+    notice_id = f"DEF-NOTICE-{app['reference'].replace('/', '-')}-{int(time.time() * 1000 % 1000000)}-{uuid.uuid4().hex[:4].upper()}"
 
     # Compute tamper-evident notice digest
     notice_content = f"{notice_id}|{app['id']}|{app['reference']}|{timestamp}|{len(deficiency_items)}|{reviewer_name}"
@@ -118,15 +119,36 @@ def get_deficiency_notice_by_id(notice_id: str) -> Optional[Dict[str, Any]]:
             return None
         res = dict(row)
         try:
-            res["deficiency_items"] = json.loads(res.get("findings_json", "[]"))
+            items = json.loads(res.get("findings_json", "[]"))
         except Exception:
-            res["deficiency_items"] = []
+            items = []
+        res["deficiency_items"] = items
+        res["findings"] = items
+        res["notice_number"] = res["id"]
+        res["generated_at"] = res["generated_date"]
+        res["application_reference"] = res["reference"]
+        res["digest"] = res["notice_hash"]
         res["disclaimer"] = "DEMO NOTICE — NOT AN OFFICIAL AICTE COMMUNICATION. Generated on synthetic test data for scrutiny workflow evaluation."
         return res
 
 def list_deficiency_notices() -> List[Dict[str, Any]]:
     with get_db_context() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, application_id, institution_name, reference, generated_date, reviewer_name, notice_hash, status FROM deficiency_notices ORDER BY id DESC")
+        cursor.execute("SELECT * FROM deficiency_notices ORDER BY id DESC")
         rows = cursor.fetchall()
-        return [dict(r) for r in rows]
+        notices = []
+        for r in rows:
+            n = dict(r)
+            try:
+                items = json.loads(n.get("findings_json", "[]"))
+            except Exception:
+                items = []
+            n["deficiency_items"] = items
+            n["findings"] = items
+            n["notice_number"] = n["id"]
+            n["generated_at"] = n["generated_date"]
+            n["application_reference"] = n["reference"]
+            n["digest"] = n["notice_hash"]
+            n["disclaimer"] = "DEMO NOTICE — NOT AN OFFICIAL AICTE COMMUNICATION. Generated on synthetic test data for scrutiny workflow evaluation."
+            notices.append(n)
+        return notices

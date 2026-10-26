@@ -19,16 +19,23 @@ export default function DeficiencyNoticesScreen({
 }) {
   const [selectedNotice, setSelectedNotice] = useState(notices.length > 0 ? notices[0] : null);
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
+  const [selectedAppId, setSelectedAppId] = useState(activeApplication?.id || 'APP-CASE-B');
   const [clarificationsNote, setClarificationsNote] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+
+  React.useEffect(() => {
+    if (!selectedNotice && notices.length > 0) {
+      setSelectedNotice(notices[0]);
+    }
+  }, [notices, selectedNotice]);
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     setIsGenerating(true);
     try {
       const newNotice = await onGenerateNotice({
-        application_id: activeApplication?.id || 'APP-CASE-C',
-        clarifications_note: clarificationsNote || 'Please provide updated land partition deeds and confirmed faculty appointments.'
+        application_id: selectedAppId || activeApplication?.id || 'APP-CASE-B',
+        clarifications_note: clarificationsNote || 'Please provide updated land partition deeds, certified faculty appointment registers, and renewed Fire Safety NOC.'
       });
       setSelectedNotice(newNotice);
       setIsGenerateOpen(false);
@@ -87,6 +94,7 @@ export default function DeficiencyNoticesScreen({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             {notices.map((n, idx) => {
               const isSelected = currentNotice?.id === n.id;
+              const dateStr = n.generated_at || n.generated_date;
               return (
                 <div
                   key={n.id || idx}
@@ -102,17 +110,29 @@ export default function DeficiencyNoticesScreen({
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
                     <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--clay-blue-primary)' }}>
-                      {n.notice_number || `NOTICE-${n.id}`}
+                      {n.notice_number || n.id}
                     </span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--clay-text-muted)', fontWeight: 600 }}>
-                      {n.generated_at ? new Date(n.generated_at).toLocaleDateString() : 'Today'}
+                      {dateStr || '2026-10-01'}
                     </span>
                   </div>
                   <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--clay-text-primary)' }}>
-                    {n.institution_name || 'Bharat College of Engineering'}
+                    {n.institution_name || 'Technical Institution'}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--clay-text-secondary)', marginTop: '0.2rem' }}>
-                    App Ref: {n.application_reference || 'AICTE-APP-2026'}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--clay-text-secondary)' }}>
+                      Ref: {n.application_reference || n.reference || 'AICTE-APP-2026'}
+                    </span>
+                    <span style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      padding: '0.15rem 0.55rem',
+                      borderRadius: '50px',
+                      background: '#fef3c7',
+                      color: '#92400e'
+                    }}>
+                      {n.status || 'Issued'}
+                    </span>
                   </div>
                 </div>
               );
@@ -134,7 +154,7 @@ export default function DeficiencyNoticesScreen({
                     Deficiency & Rectification Memo
                   </h2>
                   <div style={{ fontSize: '0.78rem', color: 'var(--clay-text-muted)' }}>
-                    Ref: {currentNotice.notice_number} · Issued: {currentNotice.generated_at ? new Date(currentNotice.generated_at).toLocaleDateString() : 'Today'}
+                    Ref: {currentNotice.notice_number || currentNotice.id} · Issued: {currentNotice.generated_at || currentNotice.generated_date || '2026-10-01'}
                   </div>
                 </div>
 
@@ -143,6 +163,7 @@ export default function DeficiencyNoticesScreen({
                     onClick={() => onVerifyReport && onVerifyReport(currentNotice.id)}
                     className="clay-btn-pill clay-btn-white"
                     style={{ padding: '0.45rem 0.85rem', fontSize: '0.78rem' }}
+                    title="Verify Cryptographic Seal & Authenticity"
                   >
                     <QrCode size={15} color="var(--clay-blue-primary)" />
                     <span>Verify QR</span>
@@ -163,27 +184,41 @@ export default function DeficiencyNoticesScreen({
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--clay-text-primary)' }}>
                   To: The Principal / Director, {currentNotice.institution_name}
                 </div>
-                <p style={{ fontSize: '0.82rem', color: 'var(--clay-text-secondary)', lineHeight: 1.5 }}>
-                  During automated compliance scrutiny for Extension of Approval (EoA) 2026-27, the following discrepancies were identified. You are directed to submit required clarifications within 15 days.
+                <div style={{ fontSize: '0.76rem', color: 'var(--clay-text-muted)' }}>
+                  Application Reference: {currentNotice.application_reference || currentNotice.reference} · Academic Cycle: 2026-27 (EoA)
+                </div>
+                <p style={{ fontSize: '0.82rem', color: 'var(--clay-text-secondary)', lineHeight: 1.5, marginTop: '0.2rem' }}>
+                  During automated compliance scrutiny for Extension of Approval (EoA) 2026-27, the following discrepancies were identified against AICTE Approval Process Handbook norms. You are directed to submit required certified clarifications within 15 days.
                 </p>
               </div>
+
+              {/* Clarifications Directives */}
+              {currentNotice.clarifications_requested && (
+                <div className="clay-well" style={{ background: '#f8fafc', borderLeft: '4px solid var(--clay-blue-primary)', padding: '0.85rem 1rem' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--clay-blue-primary)', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Statutory Clarification Directives:
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--clay-text-primary)', whiteSpace: 'pre-line', lineHeight: 1.5 }}>
+                    {currentNotice.clarifications_requested}
+                  </div>
+                </div>
+              )}
 
               {/* Findings List */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                 <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--clay-text-secondary)' }}>
-                  Specific Rectification Items:
+                  Itemized Regulatory Deficiencies ({(currentNotice.deficiency_items || currentNotice.findings || []).length}):
                 </div>
-                {(currentNotice.findings || [
-                  { rule: 'AICTE-SFR-01', text: 'Faculty count does not satisfy 1:20 ratio for proposed 480 student intake.' },
-                  { rule: 'AICTE-CAMPUS-02', text: 'Building Block A floor space shared without registered partition deed.' }
+                {(currentNotice.deficiency_items || currentNotice.findings || [
+                  { deficiency_statement: 'Faculty count does not satisfy statutory ratio for proposed student intake.', applied_rule: 'AICTE-SFR-01' }
                 ]).map((item, idx) => (
-                  <div key={idx} className="clay-well" style={{ background: '#ffffff', display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
+                  <div key={idx} className="clay-well" style={{ background: '#ffffff', display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '0.85rem' }}>
                     <div style={{
                       width: '24px',
                       height: '24px',
                       borderRadius: '50%',
-                      background: '#fee2e2',
-                      color: '#ef4444',
+                      background: item.severity === 'high' ? '#fee2e2' : '#fef3c7',
+                      color: item.severity === 'high' ? '#ef4444' : '#b45309',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -193,24 +228,32 @@ export default function DeficiencyNoticesScreen({
                     }}>
                       {idx + 1}
                     </div>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--clay-text-primary)' }}>
-                        {item.text || item.summary}
+                        {item.deficiency_statement || item.reason || item.text || item.summary || 'Discrepancy detected against submitted evidence.'}
                       </div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--clay-text-muted)' }}>
-                        Rule: {item.rule || item.rule_id || 'AICTE-NORM'}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.35rem', fontSize: '0.72rem', color: 'var(--clay-text-muted)' }}>
+                        <span><strong>Rule:</strong> {item.applied_rule || item.rule || item.rule_id || 'AICTE-NORM'}</span>
+                        {item.evidence_document && <span><strong>Doc:</strong> {item.evidence_document} ({item.page_reference || 'Page 1'})</span>}
+                        {item.extracted_value && <span><strong>Found:</strong> {String(item.extracted_value)}</span>}
+                        {item.comparison_norm && <span><strong>Norm:</strong> {String(item.comparison_norm)}</span>}
                       </div>
+                      {item.action_required && (
+                        <div style={{ fontSize: '0.74rem', color: '#0369a1', marginTop: '0.25rem', background: '#f0f9ff', padding: '0.2rem 0.5rem', borderRadius: '4px', display: 'inline-block' }}>
+                          👉 <strong>Required Action:</strong> {item.action_required}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* Digital Seal & Sign-off */}
-              <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--clay-text-muted)' }}>Cryptographic SHA-256 Digest:</div>
                   <div style={{ fontSize: '0.7rem', fontFamily: 'monospace', color: 'var(--clay-text-secondary)' }}>
-                    {currentNotice.digest ? currentNotice.digest.substring(0, 32) + '...' : 'e3b0c44298fc1c149afbf4c8996fb924...'}
+                    {(currentNotice.digest || currentNotice.notice_hash) ? (currentNotice.digest || currentNotice.notice_hash).substring(0, 36) + '...' : 'e3b0c44298fc1c149afbf4c8996fb924...'}
                   </div>
                 </div>
 
@@ -219,7 +262,7 @@ export default function DeficiencyNoticesScreen({
                     {currentNotice.reviewer_name || 'AICTE Scrutiny Officer'}
                   </div>
                   <div style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700 }}>
-                    Digitally Sealed ✓
+                    Digitally Sealed & Verifiable ✓
                   </div>
                 </div>
               </div>
@@ -235,27 +278,43 @@ export default function DeficiencyNoticesScreen({
       {/* Generate Notice Modal */}
       {isGenerateOpen && (
         <div className="modal-overlay">
-          <div className="modal-content-clay">
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--clay-text-primary)', marginBottom: '0.5rem' }}>
+          <div className="modal-content-clay" style={{ maxWidth: '560px' }}>
+            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--clay-text-primary)', marginBottom: '0.3rem' }}>
               Draft Statutory Deficiency Notice
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--clay-text-secondary)', marginBottom: '1.25rem' }}>
-              Create an official inquiry letter for {activeApplication?.name || 'Bharat College of Engineering'}.
+              Create an official AICTE inquiry memo populated with verified compliance findings.
             </p>
 
             <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
                 <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--clay-text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
-                  Specific Clarifications / Rectification Note:
+                  Target Institution / Application:
+                </label>
+                <select
+                  value={selectedAppId}
+                  onChange={(e) => setSelectedAppId(e.target.value)}
+                  className="clay-input-clean"
+                  style={{ width: '100%', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                >
+                  <option value="APP-CASE-B">Case B — Bharat College of Engineering (Deficient / Expired NOC)</option>
+                  <option value="APP-CASE-C">Case C — Chitkara Institute of Technology (Intake Conflict & Duplicate)</option>
+                  <option value="APP-CASE-A">Case A — Apex Institute of Technology (Consistent)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--clay-text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
+                  Specific Clarifications / Rectification Directives:
                 </label>
                 <div className="clay-well">
                   <textarea
                     rows={4}
                     value={clarificationsNote}
                     onChange={(e) => setClarificationsNote(e.target.value)}
-                    placeholder="Enter instructions for college (e.g., Provide registered partition deed for Block A and recruit 6 faculty members before intake approval)..."
+                    placeholder="Enter instructions for college (e.g., Provide registered partition deed for Block A and recruit required faculty before approval)..."
                     className="clay-input-clean"
-                    style={{ resize: 'vertical' }}
+                    style={{ resize: 'vertical', width: '100%' }}
                   />
                 </div>
               </div>

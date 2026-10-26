@@ -9,6 +9,8 @@ from reportlab.lib import colors
 
 from .config import SYNTHETIC_DATA_DIR, DEMO_DATE, SYNTHETIC_BANNER
 from .database import get_db_context, init_db
+from .rules_engine import evaluate_rules
+from .notices import generate_deficiency_notice
 
 def generate_pdf(filepath: Path, title: str, fields: dict, institution: str, ref: str):
     filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -71,7 +73,7 @@ def generate_pdf(filepath: Path, title: str, fields: dict, institution: str, ref
     # Footer banner
     c.setFont("Helvetica-Oblique", 7)
     c.setFillColor(colors.HexColor("#94A3B8"))
-    c.drawCentredString(width / 2, 25, "Page 1 of 1 — Generated for SIH 2026 PS5 Prototype Demonstration")
+    c.drawCentredString(width / 2, 25, "Page 1 of 1 — Generated for AICTE Scrutiny Demonstration — Synthetic Case")
 
     c.save()
 
@@ -673,7 +675,64 @@ def seed_demo_data():
 
         conn.commit()
 
+        # Pre-evaluate rules and pre-seed findings for synthetic test applications
+        for app_id in ["APP-CASE-A", "APP-CASE-B", "APP-CASE-C"]:
+            cursor.execute("SELECT * FROM applications WHERE id = ?", (app_id,))
+            app_row = cursor.fetchone()
+            if not app_row:
+                continue
+            app_dict = dict(app_row)
+            cursor.execute("SELECT * FROM documents WHERE application_id = ?", (app_id,))
+            docs = [dict(r) for r in cursor.fetchall()]
+            ext_fields = {}
+            for d in docs:
+                cursor.execute("SELECT * FROM extracted_fields WHERE document_id = ?", (d["id"],))
+                ef_rows = cursor.fetchall()
+                ext_fields[d["id"]] = {r["field"]: {"value": r["value"], "page": r["page"]} for r in ef_rows}
+            cursor.execute("SELECT * FROM historical_records WHERE institution_id = ?", (app_dict["institution_id"],))
+            hist_records = [dict(r) for r in cursor.fetchall()]
+
+            cursor.execute("DELETE FROM findings WHERE application_id = ?", (app_id,))
+            fnds = evaluate_rules(app_dict, docs, ext_fields, hist_records)
+            for f in fnds:
+                cursor.execute("""
+                INSERT INTO findings (
+                    id, application_id, rule_id, type, severity, status, field_or_claim,
+                    extracted_value, comparison_value, source_document, page_or_field,
+                    reason, verification_status, recommended_next_step, rule_source, details_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    f["id"], app_id, f["rule_id"], f["type"], f["severity"], f["status"],
+                    f["field_or_claim"], f["extracted_value"], f["comparison_value"],
+                    f["source_document"], f["page_or_field"], f["reason"],
+                    f["verification_status"], f["recommended_next_step"], f["rule_source"],
+                    json.dumps(f.get("details_json", {}))
+                ))
+        conn.commit()
+
+        # Seed realistic deficiency notices for Case B and Case C
+        try:
+            generate_deficiency_notice(
+                application_id="APP-CASE-B",
+                reviewer_name="Dr. Arvind Deshmukh (Scrutiny Committee Chair)",
+                clarifications_note=(
+                    "1. Upload valid Municipal Fire & Life Safety NOC renewed for 2026-27 (submitted NOC expired on 2025-03-31).\n"
+                    "2. Submit certified Faculty Cadre Register and Form 16 salary disbursement statements."
+                )
+            )
+            generate_deficiency_notice(
+                application_id="APP-CASE-C",
+                reviewer_name="Priya Sharma (Scrutiny Officer)",
+                clarifications_note=(
+                    "1. Reconcile proposed intake discrepancy (claims 480 intake; Governing Body Resolution confirms only 360 intake).\n"
+                    "2. Provide valid registered Land & Building Deed (uploaded PDF is an exact byte duplicate of Fire NOC)."
+                )
+            )
+        except Exception as e:
+            print("Notice seed warning:", e)
+
 if __name__ == "__main__":
     seed_demo_data()
     print("Synthetic demo data & PDFs successfully seeded!")
+
 
