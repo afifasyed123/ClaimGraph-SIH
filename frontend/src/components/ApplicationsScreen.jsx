@@ -65,7 +65,7 @@ export default function ApplicationsScreen({
       </div>
 
       {/* Applications Table */}
-      <div className="clay-card" style={{ padding: '0.5rem', overflowX: 'auto' }}>
+      <div className="clay-table-container">
         <table className="clay-table">
           <thead>
             <tr>

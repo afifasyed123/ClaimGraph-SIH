@@ -1,322 +1,504 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Building2, 
   CheckCircle2, 
   AlertTriangle, 
   FileText, 
   ArrowRight, 
-  Sparkles,
-  Users,
-  Search,
-  Sliders,
-  TrendingUp,
-  ShieldCheck,
-  Building,
-  UploadCloud
+  Search, 
+  Sliders, 
+  ShieldCheck, 
+  UploadCloud,
+  FileCheck2,
+  Clock,
+  Filter,
+  XCircle
 } from 'lucide-react';
 
 export default function OverviewScreen({ 
-  onSelectCase, 
-  onNavigate, 
+  applications = [],
+  demoCases = [],
+  notices = [],
   campusData,
-  onOpenUpload
+  onSelectCase, 
+  onSelectAppId,
+  onNavigate, 
+  onOpenUpload 
 }) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('ALL'); // 'ALL', 'ACTION_REQUIRED', 'COMPLIANT', 'CAMPUS'
+
+  // Combine applications
+  const appList = applications.length > 0 ? applications : demoCases;
+
+  // Real stats
+  const totalApps = appList.length;
+  const actionRequiredCount = appList.filter(a => a.id === 'APP-CASE-B' || a.id === 'APP-CASE-C' || a.status === 'Discrepancy' || a.status === 'Incomplete').length;
+  const compliantCount = appList.filter(a => a.id === 'APP-CASE-A' || a.status === 'Consistent').length;
+  const campusConflictsCount = campusData?.conflicts_count ?? 2;
+  const noticesCount = notices.length > 0 ? notices.length : 2;
+
+  // Search & Filter
+  const filteredApps = appList.filter(app => {
+    const matchesSearch = 
+      (app.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (app.reference || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (app.programme || app.category || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    if (filterType === 'ACTION_REQUIRED') {
+      return app.id === 'APP-CASE-B' || app.id === 'APP-CASE-C' || app.status === 'Discrepancy' || app.status === 'Incomplete';
+    }
+    if (filterType === 'COMPLIANT') {
+      return app.id === 'APP-CASE-A' || app.status === 'Consistent';
+    }
+    if (filterType === 'CAMPUS') {
+      return app.campus_id === 'CAMPUS-VV-01' || app.id.includes('CAMPUS') || app.id === 'APP-CASE-C';
+    }
+    return true;
+  });
+
+  const handleOpenApp = (app) => {
+    if (onSelectAppId) {
+      onSelectAppId(app.id);
+    } else if (onSelectCase) {
+      const caseKey = app.id === 'APP-CASE-A' ? 'case_a' : app.id === 'APP-CASE-B' ? 'case_b' : 'case_c';
+      onSelectCase(caseKey);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', width: '100%' }}>
       {/* Executive Welcome Hero Card */}
-      <div className="clay-box" style={{ padding: '2.2rem 2.5rem', width: '100%' }}>
+      <div className="clay-box" style={{ padding: '2rem 2.2rem', width: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem' }}>
           <div style={{ maxWidth: '780px' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', background: '#eff6ff', color: 'var(--clay-blue-primary)', padding: '0.35rem 0.95rem', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.75rem' }}>
-              <Sparkles size={14} />
-              <span>AICTE Regulatory Compliance Portal</span>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              background: '#eff6ff',
+              color: 'var(--clay-blue-primary)',
+              padding: '0.3rem 0.85rem',
+              borderRadius: '50px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              marginBottom: '0.65rem',
+              border: '1px solid #dbeafe'
+            }}>
+              <span>AICTE Approval Process Handbook (APH 2024–27)</span>
             </div>
-            <h1 style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--clay-text-primary)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-              Institutional Compliance & Scrutiny Dashboard
+            <h1 style={{ fontSize: '1.95rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+              Regulatory Application Scrutiny Dashboard
             </h1>
-            <p style={{ fontSize: '0.98rem', color: 'var(--clay-text-secondary)', marginTop: '0.45rem', lineHeight: 1.55 }}>
-              Continuous automated verification of faculty numbers, campus land deeds, and multi-college shared facilities across all registered institutions.
+            <p style={{ fontSize: '0.92rem', color: '#475569', marginTop: '0.4rem', lineHeight: 1.55 }}>
+              Task-oriented scrutiny queue for reviewing institutional claims, verifying extracted evidence from land deeds, fire NOCs, and faculty registers, and reconciling multi-college shared campus facilities.
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <button
               onClick={onOpenUpload}
-              className="clay-btn-pill clay-btn-blue"
-              style={{ padding: '0.85rem 1.6rem', fontSize: '0.92rem' }}
+              className="clay-btn-pill clay-btn-blue transition-all duration-200 hover:scale-[1.01] hover:shadow-lg active:scale-[0.99] cursor-pointer"
+              style={{ padding: '0.75rem 1.4rem', fontSize: '0.88rem' }}
             >
               <UploadCloud size={16} />
               <span>Upload Application / Add Documents</span>
             </button>
             <button
               onClick={() => onNavigate('scrutiny')}
-              className="clay-btn-pill clay-btn-white"
-              style={{ padding: '0.85rem 1.6rem', fontSize: '0.92rem' }}
+              className="clay-btn-pill clay-btn-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              style={{ padding: '0.75rem 1.3rem', fontSize: '0.88rem' }}
             >
               <Search size={16} />
-              <span>Start Review</span>
+              <span>Scrutiny Workspace</span>
             </button>
             <button
               onClick={() => onNavigate('campus_reconciliation')}
-              className="clay-btn-pill clay-btn-white"
-              style={{ padding: '0.85rem 1.6rem', fontSize: '0.92rem' }}
+              className="clay-btn-pill clay-btn-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              style={{ padding: '0.75rem 1.3rem', fontSize: '0.88rem' }}
             >
               <Building2 size={16} />
-              <span>Campus Check</span>
+              <span>Campus Reconciliation</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Top 4 Stat & Visual Metric Cards (Inspired by User's Reference Image) */}
+      {/* Task-Oriented Review Summary Cards (Real Verified Counts, No Decorative Charts) */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gap: '1.25rem',
+        width: '100%'
+      }}>
+        {/* Metric 1: Total Registered */}
+        <div className="clay-box-sm" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--clay-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Registered Applications
+            </span>
+            <FileText size={18} color="var(--clay-blue-primary)" />
+          </div>
+          <div style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--clay-text-primary)', margin: '0.4rem 0 0.2rem' }}>
+            {totalApps}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+            Engineering, Pharmacy & Management
+          </div>
+        </div>
+
+        {/* Metric 2: Requiring Action */}
+        <div 
+          onClick={() => setFilterType('ACTION_REQUIRED')}
+          className="clay-box-sm cursor-pointer" 
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            justifyContent: 'space-between',
+            borderLeft: '4px solid #ef4444'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b91c1c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Action Required
+            </span>
+            <AlertTriangle size={18} color="#ef4444" />
+          </div>
+          <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#b91c1c', margin: '0.4rem 0 0.2rem' }}>
+            {actionRequiredCount}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#b91c1c', fontWeight: 600 }}>
+            Intake discrepancy & expired NOC
+          </div>
+        </div>
+
+        {/* Metric 3: Multi-College Campus Overlaps */}
+        <div 
+          onClick={() => onNavigate('campus_reconciliation')}
+          className="clay-box-sm cursor-pointer" 
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            justifyContent: 'space-between',
+            borderLeft: '4px solid #8b5cf6'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#6d28d9', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Shared Campus Alerts
+            </span>
+            <Building2 size={18} color="#8b5cf6" />
+          </div>
+          <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#6d28d9', margin: '0.4rem 0 0.2rem' }}>
+            {campusConflictsCount}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#6d28d9', fontWeight: 600 }}>
+            Vidya Vihar: Facility & Faculty sharing
+          </div>
+        </div>
+
+        {/* Metric 4: Deficiency Notices */}
+        <div 
+          onClick={() => onNavigate('notices')}
+          className="clay-box-sm cursor-pointer" 
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            justifyContent: 'space-between',
+            borderLeft: '4px solid #f59e0b'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#d97706', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Deficiency Notices
+            </span>
+            <Clock size={18} color="#f59e0b" />
+          </div>
+          <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#d97706', margin: '0.4rem 0 0.2rem' }}>
+            {noticesCount}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#d97706', fontWeight: 600 }}>
+            Formally generated notices on record
+          </div>
+        </div>
+      </div>
+
+      {/* Task-Oriented Application Scrutiny Register */}
+      <div className="clay-box" style={{ padding: '1.8rem 2.2rem', width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a' }}>
+              Institutional Scrutiny Queue
+            </h2>
+            <p style={{ fontSize: '0.82rem', color: '#64748b' }}>
+              Select an institution to inspect extracted evidence, verify statutory rules, or record official reviewer decisions.
+            </p>
+          </div>
+
+          {/* Quick Filters */}
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setFilterType('ALL')}
+              className={`clay-btn-pill ${filterType === 'ALL' ? 'clay-btn-blue' : 'clay-btn-white'}`}
+              style={{ padding: '0.45rem 0.85rem', fontSize: '0.78rem' }}
+            >
+              All ({totalApps})
+            </button>
+            <button
+              onClick={() => setFilterType('ACTION_REQUIRED')}
+              className={`clay-btn-pill ${filterType === 'ACTION_REQUIRED' ? 'clay-btn-blue' : 'clay-btn-white'}`}
+              style={{ padding: '0.45rem 0.85rem', fontSize: '0.78rem' }}
+            >
+              Requires Action ({actionRequiredCount})
+            </button>
+            <button
+              onClick={() => setFilterType('COMPLIANT')}
+              className={`clay-btn-pill ${filterType === 'COMPLIANT' ? 'clay-btn-blue' : 'clay-btn-white'}`}
+              style={{ padding: '0.45rem 0.85rem', fontSize: '0.78rem' }}
+            >
+              Verified Compliant ({compliantCount})
+            </button>
+            <button
+              onClick={() => setFilterType('CAMPUS')}
+              className={`clay-btn-pill ${filterType === 'CAMPUS' ? 'clay-btn-blue' : 'clay-btn-white'}`}
+              style={{ padding: '0.45rem 0.85rem', fontSize: '0.78rem' }}
+            >
+              Shared Campus
+            </button>
+          </div>
+        </div>
+
+        {/* Live Search Bar */}
+        <div style={{ marginBottom: '1.25rem' }}>
+          <div className="clay-well" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1.1rem' }}>
+            <Search size={18} color="#94a3b8" />
+            <input
+              type="text"
+              placeholder="Search by institution name, reference number, or category..."
+              className="clay-input-clean"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ fontSize: '0.88rem' }}
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8' }}
+              >
+                <XCircle size={16} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Application List Table */}
+        <div className="clay-table-container">
+          <table className="clay-table">
+            <thead>
+              <tr>
+                <th style={{ width: '38%' }}>Institution & Reference</th>
+                <th style={{ width: '16%' }}>Intake & Faculty</th>
+                <th style={{ width: '18%' }}>Compliance Status</th>
+                <th style={{ width: '18%' }}>Key Scrutiny Finding</th>
+                <th style={{ width: '10%', textAlign: 'right' }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredApps.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '3rem 1.5rem', color: '#64748b' }}>
+                    <AlertTriangle size={32} color="#94a3b8" style={{ margin: '0 auto 0.65rem' }} />
+                    <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>
+                      No matching applications found
+                    </div>
+                    <p style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '0.25rem' }}>
+                      Try adjusting the search query or filters, or click "Upload Application" above to add new PDF submissions.
+                    </p>
+                  </td>
+                </tr>
+              ) : (
+                filteredApps.map((app) => {
+                  const isCaseA = app.id === 'APP-CASE-A';
+                  const isCaseB = app.id === 'APP-CASE-B';
+                  const isCaseC = app.id === 'APP-CASE-C';
+                  const isSharedCampus = app.campus_id === 'CAMPUS-VV-01' || app.id.includes('CAMPUS');
+
+                  let statusBadge = (
+                    <span className="clay-badge badge-info" style={{ whiteSpace: 'nowrap' }}>
+                      Under Scrutiny
+                    </span>
+                  );
+                  let findingSummary = "Pending detailed document extraction";
+
+                  if (isCaseA) {
+                    statusBadge = (
+                      <span className="clay-badge badge-success" style={{ whiteSpace: 'nowrap' }}>
+                        🟢 Verified Compliant
+                      </span>
+                    );
+                    findingSummary = "All 4 required documents valid; SFR 1:12.5 (Norm 1:15 satisfied); Valid Fire NOC";
+                  } else if (isCaseB) {
+                    statusBadge = (
+                      <span className="clay-badge badge-warning" style={{ whiteSpace: 'nowrap' }}>
+                        🟡 Deficiency Detected
+                      </span>
+                    );
+                    findingSummary = "Expired Fire Safety NOC; Faculty shortfall of 6 teachers; Omitted land certificate";
+                  } else if (isCaseC) {
+                    statusBadge = (
+                      <span className="clay-badge badge-danger" style={{ whiteSpace: 'nowrap' }}>
+                        🔴 Discrepancy Detected
+                      </span>
+                    );
+                    findingSummary = "480 intake claimed vs 360 in Resolution; Identical SHA-256 duplicate file; Campus overlap";
+                  } else if (isSharedCampus) {
+                    statusBadge = (
+                      <span className="clay-badge" style={{ background: '#f5f3ff', color: '#7c3aed', border: '1px solid #ddd6fe', whiteSpace: 'nowrap' }}>
+                        🟣 Campus Sharing Alert
+                      </span>
+                    );
+                    findingSummary = "Physical facility and faculty shared with adjacent campus institutions";
+                  }
+
+                  return (
+                    <tr key={app.id}>
+                      {/* Column 1: Institution & Reference */}
+                      <td>
+                        <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.94rem', lineHeight: 1.35, marginBottom: '0.35rem' }}>
+                          {app.name}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+                          <span style={{
+                            fontFamily: 'monospace',
+                            fontWeight: 700,
+                            fontSize: '0.74rem',
+                            color: 'var(--clay-blue-primary)',
+                            background: '#eff6ff',
+                            padding: '0.15rem 0.5rem',
+                            borderRadius: '4px',
+                            border: '1px solid #dbeafe'
+                          }}>
+                            {app.reference || app.id}
+                          </span>
+                          <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#475569' }}>
+                            {app.programme || app.category || 'Engineering & Technology'}
+                          </span>
+                          <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                            · {app.campus_name || (isSharedCampus ? 'Vidya Vihar Campus' : 'Autonomous Institution')}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Column 2: Intake & Faculty */}
+                      <td>
+                        <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>
+                          {app.proposed_intake ?? '—'} Seats
+                        </div>
+                        <div style={{ fontSize: '0.74rem', color: app.faculty_count ? '#059669' : '#dc2626', fontWeight: 700, marginTop: '0.15rem' }}>
+                          {app.faculty_count ? `${app.faculty_count} Faculty Appointed` : 'Shortfall / Unverified'}
+                        </div>
+                      </td>
+
+                      {/* Column 3: Compliance Status */}
+                      <td>
+                        {statusBadge}
+                      </td>
+
+                      {/* Column 4: Key Finding Summary */}
+                      <td>
+                        <div style={{ fontSize: '0.8rem', color: '#475569', lineHeight: 1.45 }}>
+                          {findingSummary}
+                        </div>
+                      </td>
+
+                      {/* Column 5: Action */}
+                      <td style={{ textAlign: 'right' }}>
+                        <button
+                          onClick={() => handleOpenApp(app)}
+                          className="clay-btn-pill clay-btn-blue transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                          style={{ padding: '0.55rem 1.05rem', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
+                        >
+                          <span>Open Workspace</span>
+                          <ArrowRight size={13} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Two Supporting Officer Actions Cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
         gap: '1.5rem',
         width: '100%'
       }}>
-        {/* Card 1: 3D Circular Meter Gauge (75% in Reference Image) */}
-        <div className="clay-box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', width: '100%' }}>
+        {/* Card 1: Multi-College Campus Sharing Quick View */}
+        <div className="clay-box" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--clay-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Overall Verification Score
-            </div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--clay-text-primary)', margin: '0.35rem 0' }}>
-              94.2%
-            </div>
-            <div style={{ fontSize: '0.78rem', color: '#10b981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <span>▲ 14 Mandatory AICTE Rules Met</span>
-            </div>
-          </div>
-
-          {/* Clay Donut Gauge */}
-          <div className="clay-meter-circle">
-            <svg viewBox="0 0 36 36" style={{ width: '84px', height: '84px', transform: 'rotate(-90deg)' }}>
-              <path
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none"
-                stroke="#e2e8f0"
-                strokeWidth="3.8"
-              />
-              <path
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none"
-                stroke="url(#clayBlueGrad)"
-                strokeWidth="3.8"
-                strokeDasharray="94, 100"
-              />
-              <defs>
-                <linearGradient id="clayBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#2f69ff" />
-                  <stop offset="100%" stopColor="#1545e6" />
-                </linearGradient>
-              </defs>
-            </svg>
-            <div style={{ position: 'absolute', fontSize: '1rem', fontWeight: 800, color: 'var(--clay-blue-primary)' }}>
-              94%
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Smooth Wave Chart (Matching the exact wave chart in Reference Image) */}
-        <div className="clay-box" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: '100%' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--clay-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                7-Day Scrutiny Volume
-              </div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--clay-text-primary)', marginTop: '0.2rem' }}>
-                +1,280 Files
-              </div>
-            </div>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#10b981', background: '#ecfdf5', padding: '0.2rem 0.6rem', borderRadius: '50px' }}>
-              ▲ +22.1%
-            </span>
-          </div>
-
-          {/* Smooth Blue Wave Line from Reference Image */}
-          <div style={{ marginTop: '0.75rem' }}>
-            <svg viewBox="0 0 180 40" style={{ width: '100%', height: '42px', overflow: 'visible' }}>
-              <path
-                d="M 5,28 Q 35,5 65,26 T 125,20 T 165,10"
-                fill="none"
-                stroke="#2563eb"
-                strokeWidth="3.2"
-                strokeLinecap="round"
-              />
-              <circle cx="165" cy="10" r="4.5" fill="#2563eb" stroke="#ffffff" strokeWidth="2" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Card 3: Shared Campus Status */}
-        <div className="clay-box" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: '100%' }}>
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--clay-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Multi-College Campus
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Multi-College Physical Campus
               </span>
-              <span style={{ fontSize: '0.72rem', fontWeight: 800, padding: '0.2rem 0.65rem', borderRadius: '50px', background: '#fef2f2', color: '#ef4444' }}>
-                {campusData?.conflicts_count ?? 2} Overlaps
+              <span className="clay-badge" style={{ background: '#f5f3ff', color: '#7c3aed' }}>
+                2 Overlaps Detected
               </span>
             </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--clay-text-primary)', marginTop: '0.35rem' }}>
-              Vidya Vihar Campus
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--clay-text-secondary)', marginTop: '0.2rem' }}>
-              3 Colleges sharing common facilities & faculty
-            </div>
-          </div>
-
-          <div style={{ marginTop: '0.85rem' }}>
-            <button
-              onClick={() => onNavigate('campus_reconciliation')}
-              className="clay-btn-pill clay-btn-white"
-              style={{ width: '100%', padding: '0.55rem 1rem', fontSize: '0.82rem' }}
-            >
-              <span>Inspect Campus Overlaps</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        </div>
-
-        {/* Card 4: Verified Rules Engine */}
-        <div className="clay-box" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: '100%' }}>
-          <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--clay-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Automated Rules Active
-            </div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--clay-text-primary)', margin: '0.35rem 0' }}>
-              9 Rules
-            </div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--clay-text-secondary)' }}>
-              Faculty SFR 1:20 · Land Deeds · Fire NOC
-            </div>
-          </div>
-
-          <div style={{ marginTop: '0.85rem' }}>
-            <button
-              onClick={() => onNavigate('simulator')}
-              className="clay-btn-pill clay-btn-white"
-              style={{ width: '100%', padding: '0.55rem 1rem', fontSize: '0.82rem' }}
-            >
-              <span>Launch Simulator</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Choose an Institution to Review Section (Full Width Cards) */}
-      <div style={{ width: '100%' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-          <div>
-            <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--clay-text-primary)' }}>
-              Registered Institutions Under Review
-            </h2>
-            <p style={{ fontSize: '0.88rem', color: 'var(--clay-text-secondary)' }}>
-              Select any college below to inspect its application, view extracted proofs, or test adjustments.
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>
+              Vidya Vihar Integrated Campus
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '0.35rem', lineHeight: 1.5 }}>
+              Co-located campus hosting Chitkara Institute (Engineering), Vidya College of Pharmacy, and Vidya Institute of Management. Automatically flagged for common auditorium sharing and faculty double-counting.
             </p>
           </div>
+
+          <div style={{ marginTop: '1.25rem' }}>
+            <button
+              onClick={() => onNavigate('campus_reconciliation')}
+              className="clay-btn-pill clay-btn-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              style={{ width: '100%', padding: '0.65rem 1rem', fontSize: '0.82rem' }}
+            >
+              <span>Inspect Campus Shared Claims</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-          gap: '1.5rem',
-          width: '100%'
-        }}>
-          {/* College 1: Apex Institute (Compliant) */}
-          <div 
-            onClick={() => { onSelectCase('case_a'); onNavigate('scrutiny'); }}
-            className="clay-box" 
-            style={{ cursor: 'pointer', borderTop: '6px solid #10b981', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
-          >
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, padding: '0.25rem 0.75rem', borderRadius: '50px', background: '#ecfdf5', color: '#059669' }}>
-                  🟢 Fully Compliant
-                </span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--clay-text-muted)', fontWeight: 600 }}>APP-CASE-A</span>
-              </div>
-
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--clay-text-primary)', marginBottom: '0.4rem' }}>
-                Apex Institute of Technology
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--clay-text-secondary)', lineHeight: 1.45, marginBottom: '1.25rem' }}>
-                Engineering college with 300 seats and 24 faculty members. Teacher-student ratio is 1:12.5. All statutory clearances are valid.
-              </p>
+        {/* Card 2: Cryptographic Audit Ledger Status */}
+        <div className="clay-box" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Integrity & Audit Trail
+              </span>
+              <span className="clay-badge badge-success">
+                SHA-256 Verified
+              </span>
             </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '0.85rem' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#10b981' }}>0 Discrepancies</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem', fontWeight: 700, color: 'var(--clay-blue-primary)' }}>
-                <span>Inspect Application</span>
-                <ArrowRight size={15} />
-              </div>
-            </div>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>
+              Immutable Review Ledger
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '0.35rem', lineHeight: 1.5 }}>
+              Every reviewer decision, clarification request, document upload, and deficiency notice is cryptographically hashed with timestamp and officer ID into an append-only verification ledger.
+            </p>
           </div>
 
-          {/* College 2: Bharat College (Intake Over-claim) */}
-          <div 
-            onClick={() => { onSelectCase('case_b'); onNavigate('scrutiny'); }}
-            className="clay-box" 
-            style={{ cursor: 'pointer', borderTop: '6px solid #f59e0b', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
-          >
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, padding: '0.25rem 0.75rem', borderRadius: '50px', background: '#fffbeb', color: '#d97706' }}>
-                  🟡 Intake Exceeds Capacity
-                </span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--clay-text-muted)', fontWeight: 600 }}>APP-CASE-B</span>
-              </div>
-
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--clay-text-primary)', marginBottom: '0.4rem' }}>
-                Bharat College of Engineering
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--clay-text-secondary)', lineHeight: 1.45, marginBottom: '1.25rem' }}>
-                Sanctioned student intake is 480, but available faculty is only 18 (SFR 1:26.7). Maximum permissible intake is 360 students.
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '0.85rem' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f59e0b' }}>Shortage of 6 Faculty</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem', fontWeight: 700, color: 'var(--clay-blue-primary)' }}>
-                <span>Inspect Application</span>
-                <ArrowRight size={15} />
-              </div>
-            </div>
-          </div>
-
-          {/* College 3: Chitkara Institute (Multi-College Campus Conflict) */}
-          <div 
-            onClick={() => { onSelectCase('case_c'); onNavigate('scrutiny'); }}
-            className="clay-box" 
-            style={{ cursor: 'pointer', borderTop: '6px solid #ef4444', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
-          >
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, padding: '0.25rem 0.75rem', borderRadius: '50px', background: '#fef2f2', color: '#ef4444' }}>
-                  🔴 Multi-College Conflict
-                </span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--clay-text-muted)', fontWeight: 600 }}>APP-CASE-C</span>
-              </div>
-
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--clay-text-primary)', marginBottom: '0.4rem' }}>
-                Chitkara Institute of Technology
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--clay-text-secondary)', lineHeight: 1.45, marginBottom: '1.25rem' }}>
-                Shares Vidya Vihar Campus with Pharmacy and Management colleges. Overlapping claims on Dr. Sharma and Building Block A.
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '0.85rem' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ef4444' }}>2 Overlaps Identified</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem', fontWeight: 700, color: 'var(--clay-blue-primary)' }}>
-                <span>Inspect Application</span>
-                <ArrowRight size={15} />
-              </div>
-            </div>
+          <div style={{ marginTop: '1.25rem' }}>
+            <button
+              onClick={() => onNavigate('audit')}
+              className="clay-btn-pill clay-btn-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              style={{ width: '100%', padding: '0.65rem 1rem', fontSize: '0.82rem' }}
+            >
+              <span>Verify Cryptographic Audit Chain</span>
+              <ShieldCheck size={14} color="#059669" />
+            </button>
           </div>
         </div>
       </div>

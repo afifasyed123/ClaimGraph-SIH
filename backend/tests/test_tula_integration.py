@@ -132,3 +132,20 @@ def test_rule_registry_and_provenance():
         assert "version" in r
         assert "source" in r
         assert "Illustrative" in r["source"] or "Demonstration" in r["source"]
+
+def test_preseeded_deficiency_notices_listing():
+    """Verify pre-seeded deficiency notices listing and rich field aliases"""
+    resp = client.get("/api/notices")
+    assert resp.status_code == 200
+    notices = resp.json()
+    assert len(notices) >= 2
+    for n in notices:
+        assert "id" in n
+        assert "notice_number" in n
+        assert "institution_name" in n
+        assert "digest" in n
+        assert "notice_hash" in n
+        assert "findings" in n
+        assert "deficiency_items" in n
+        assert len(n["findings"]) > 0
+

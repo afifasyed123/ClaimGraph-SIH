@@ -1,6 +1,6 @@
 # ClaimGraph-AICTE Demonstration Rules
-# NOTE: All rules are strictly demonstration rules for the SIH 2026 PS5 prototype.
-# Demonstration rules are not official AICTE requirements.
+# NOTE: All rules are strictly demonstration rules for the AICTE Scrutiny prototype.
+# Demonstration rules are illustrative and based on AICTE Approval Process Handbook guidelines.
 
 rules:
   - id: "RULE-DOC-CHECKLIST"

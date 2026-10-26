@@ -25,7 +25,7 @@ export default function DeficiencyNoticesScreen({
 }) {
   const [selectedNotice, setSelectedNotice] = useState(notices.length > 0 ? notices[0] : null);
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
-  const [targetAppId, setTargetAppId] = useState(activeApplication?.id || (applications.length > 0 ? applications[0].id : 'APP-CASE-C'));
+  const [selectedAppId, setSelectedAppId] = useState(activeApplication?.id || 'APP-CASE-B');
   const [clarificationsNote, setClarificationsNote] = useState('');
   const [validationError, setValidationError] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -46,6 +46,12 @@ export default function DeficiencyNoticesScreen({
     setValidationError('');
   };
 
+  React.useEffect(() => {
+    if (!selectedNotice && notices.length > 0) {
+      setSelectedNotice(notices[0]);
+    }
+  }, [notices, selectedNotice]);
+
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     const trimmed = clarificationsNote.trim();
@@ -63,8 +69,8 @@ export default function DeficiencyNoticesScreen({
     setValidationError('');
     try {
       const newNotice = await onGenerateNotice({
-        application_id: chosenAppId,
-        clarifications_note: trimmed
+        application_id: selectedAppId || activeApplication?.id || 'APP-CASE-B',
+        clarifications_note: clarificationsNote || 'Please provide updated land partition deeds, certified faculty appointment registers, and renewed Fire Safety NOC.'
       });
       setSelectedNotice(newNotice);
       setIsGenerateOpen(false);
@@ -132,41 +138,48 @@ export default function DeficiencyNoticesScreen({
             Issued Deficiency Notices ({notices.length})
           </div>
 
-          {notices.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--clay-text-muted)', fontSize: '0.85rem' }}>
-              No deficiency notices issued yet. Click "Draft New Deficiency Notice" to issue one.
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              {notices.map((n, idx) => {
-                const isSelected = currentNotice?.id === n.id;
-                return (
-                  <div
-                    key={n.id || idx}
-                    onClick={() => setSelectedNotice(n)}
-                    className="clay-well"
-                    style={{
-                      cursor: 'pointer',
-                      background: isSelected ? '#ffffff' : 'var(--clay-inset-bg)',
-                      boxShadow: isSelected ? 'var(--clay-shadow-small)' : 'var(--clay-shadow-inset-sm)',
-                      border: isSelected ? '2px solid var(--clay-blue-primary)' : '1px solid rgba(160, 178, 206, 0.3)',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--clay-blue-primary)' }}>
-                        {n.notice_number || n.id}
-                      </span>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--clay-text-muted)', fontWeight: 600 }}>
-                        {n.generated_date ? n.generated_date : (n.generated_at ? new Date(n.generated_at).toLocaleDateString() : 'Active')}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--clay-text-primary)' }}>
-                      {n.institution_name || 'Bharat College of Engineering'}
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--clay-text-secondary)', marginTop: '0.2rem' }}>
-                      App Ref: {n.reference || n.application_reference || 'AICTE-APP-2026'}
-                    </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            {notices.map((n, idx) => {
+              const isSelected = currentNotice?.id === n.id;
+              const dateStr = n.generated_at || n.generated_date;
+              return (
+                <div
+                  key={n.id || idx}
+                  onClick={() => setSelectedNotice(n)}
+                  className="clay-well"
+                  style={{
+                    cursor: 'pointer',
+                    background: isSelected ? '#ffffff' : 'var(--clay-inset-bg)',
+                    boxShadow: isSelected ? 'var(--clay-shadow-small)' : 'var(--clay-shadow-inset-sm)',
+                    border: isSelected ? '2px solid var(--clay-blue-primary)' : '1px solid rgba(160, 178, 206, 0.3)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--clay-blue-primary)' }}>
+                      {n.notice_number || n.id}
+                    </span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--clay-text-muted)', fontWeight: 600 }}>
+                      {dateStr || '2026-10-01'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--clay-text-primary)' }}>
+                    {n.institution_name || 'Technical Institution'}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--clay-text-secondary)' }}>
+                      Ref: {n.application_reference || n.reference || 'AICTE-APP-2026'}
+                    </span>
+                    <span style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      padding: '0.15rem 0.55rem',
+                      borderRadius: '50px',
+                      background: '#fef3c7',
+                      color: '#92400e'
+                    }}>
+                      {n.status || 'Issued'}
+                    </span>
                   </div>
                 );
               })}
@@ -188,7 +201,7 @@ export default function DeficiencyNoticesScreen({
                     Deficiency & Rectification Memo
                   </h2>
                   <div style={{ fontSize: '0.78rem', color: 'var(--clay-text-muted)' }}>
-                    Ref: {currentNotice.notice_number || currentNotice.id} · Issued: {currentNotice.generated_date || 'Current Scrutiny Cycle'}
+                    Ref: {currentNotice.notice_number || currentNotice.id} · Issued: {currentNotice.generated_at || currentNotice.generated_date || '2026-10-01'}
                   </div>
                 </div>
 
@@ -197,7 +210,7 @@ export default function DeficiencyNoticesScreen({
                     onClick={() => onVerifyReport && onVerifyReport(currentNotice.id)}
                     className="clay-btn-pill clay-btn-white"
                     style={{ padding: '0.45rem 0.85rem', fontSize: '0.78rem' }}
-                    title="Verify cryptographic authenticity and QR status"
+                    title="Verify Cryptographic Seal & Authenticity"
                   >
                     <QrCode size={15} color="var(--clay-blue-primary)" />
                     <span>Verify Seal</span>
@@ -218,27 +231,41 @@ export default function DeficiencyNoticesScreen({
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--clay-text-primary)' }}>
                   To: The Principal / Director, {currentNotice.institution_name}
                 </div>
-                <p style={{ fontSize: '0.82rem', color: 'var(--clay-text-secondary)', lineHeight: 1.5 }}>
-                  During automated compliance scrutiny for Extension of Approval (EoA) 2026-27, the following discrepancies were identified. You are directed to submit required clarifications within 15 days.
+                <div style={{ fontSize: '0.76rem', color: 'var(--clay-text-muted)' }}>
+                  Application Reference: {currentNotice.application_reference || currentNotice.reference} · Academic Cycle: 2026-27 (EoA)
+                </div>
+                <p style={{ fontSize: '0.82rem', color: 'var(--clay-text-secondary)', lineHeight: 1.5, marginTop: '0.2rem' }}>
+                  During automated compliance scrutiny for Extension of Approval (EoA) 2026-27, the following discrepancies were identified against AICTE Approval Process Handbook norms. You are directed to submit required certified clarifications within 15 days.
                 </p>
               </div>
 
-              {/* Specific Findings List */}
+              {/* Clarifications Directives */}
+              {currentNotice.clarifications_requested && (
+                <div className="clay-well" style={{ background: '#f8fafc', borderLeft: '4px solid var(--clay-blue-primary)', padding: '0.85rem 1rem' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--clay-blue-primary)', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Statutory Clarification Directives:
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--clay-text-primary)', whiteSpace: 'pre-line', lineHeight: 1.5 }}>
+                    {currentNotice.clarifications_requested}
+                  </div>
+                </div>
+              )}
+
+              {/* Findings List */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                 <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--clay-text-secondary)' }}>
-                  Specific Rectification Items:
+                  Itemized Regulatory Deficiencies ({(currentNotice.deficiency_items || currentNotice.findings || []).length}):
                 </div>
                 {(currentNotice.deficiency_items || currentNotice.findings || [
-                  { rule: 'AICTE-SFR-01', text: 'Faculty count does not satisfy 1:20 ratio for proposed 480 student intake.' },
-                  { rule: 'AICTE-CAMPUS-02', text: 'Building Block A floor space shared without registered partition deed.' }
+                  { deficiency_statement: 'Faculty count does not satisfy statutory ratio for proposed student intake.', applied_rule: 'AICTE-SFR-01' }
                 ]).map((item, idx) => (
-                  <div key={idx} className="clay-well" style={{ background: '#ffffff', display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
+                  <div key={idx} className="clay-well" style={{ background: '#ffffff', display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '0.85rem' }}>
                     <div style={{
                       width: '24px',
                       height: '24px',
                       borderRadius: '50%',
-                      background: '#fee2e2',
-                      color: '#ef4444',
+                      background: item.severity === 'high' ? '#fee2e2' : '#fef3c7',
+                      color: item.severity === 'high' ? '#ef4444' : '#b45309',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -248,14 +275,21 @@ export default function DeficiencyNoticesScreen({
                     }}>
                       {idx + 1}
                     </div>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--clay-text-primary)' }}>
-                        {item.deficiency_statement || item.text || item.summary || item.reason}
+                        {item.deficiency_statement || item.reason || item.text || item.summary || 'Discrepancy detected against submitted evidence.'}
                       </div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--clay-text-muted)', marginTop: '0.15rem' }}>
-                        Rule: {item.applied_rule || item.rule || item.rule_id || 'AICTE-NORM'} 
-                        {item.action_required ? ` · Action: ${item.action_required}` : ''}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.35rem', fontSize: '0.72rem', color: 'var(--clay-text-muted)' }}>
+                        <span><strong>Rule:</strong> {item.applied_rule || item.rule || item.rule_id || 'AICTE-NORM'}</span>
+                        {item.evidence_document && <span><strong>Doc:</strong> {item.evidence_document} ({item.page_reference || 'Page 1'})</span>}
+                        {item.extracted_value && <span><strong>Found:</strong> {String(item.extracted_value)}</span>}
+                        {item.comparison_norm && <span><strong>Norm:</strong> {String(item.comparison_norm)}</span>}
                       </div>
+                      {item.action_required && (
+                        <div style={{ fontSize: '0.74rem', color: '#0369a1', marginTop: '0.25rem', background: '#f0f9ff', padding: '0.2rem 0.5rem', borderRadius: '4px', display: 'inline-block' }}>
+                          👉 <strong>Required Action:</strong> {item.action_required}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -274,33 +308,11 @@ export default function DeficiencyNoticesScreen({
               )}
 
               {/* Digital Seal & Sign-off */}
-              <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
-                <div style={{ flex: 1, minWidth: '220px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.2rem' }}>
-                    <Lock size={12} color="var(--clay-text-muted)" />
-                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--clay-text-muted)' }}>
-                      Cryptographic SHA-256 Digest (Public Verification Fingerprint):
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ fontSize: '0.7rem', fontFamily: 'monospace', color: '#1e3a8a', wordBreak: 'break-all', background: '#f8fafc', padding: '0.35rem 0.55rem', borderRadius: '4px', border: '1px solid #e2e8f0', flex: 1 }}>
-                      {activeHash || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}
-                    </div>
-                    {activeHash && (
-                      <button
-                        type="button"
-                        onClick={() => handleCopyHash(activeHash)}
-                        className="clay-btn-pill clay-btn-white"
-                        style={{ padding: '0.25rem 0.55rem', fontSize: '0.7rem' }}
-                        title="Copy public verification hash"
-                      >
-                        {copiedHash ? <Check size={12} color="#15803d" /> : <Copy size={12} />}
-                        <span>{copiedHash ? 'Copied' : 'Copy'}</span>
-                      </button>
-                    )}
-                  </div>
-                  <div style={{ fontSize: '0.67rem', color: '#64748b', marginTop: '0.25rem' }}>
-                    Public checksum seal · Not a private key. Used by QR verification to prevent tampering.
+              <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--clay-text-muted)' }}>Cryptographic SHA-256 Digest:</div>
+                  <div style={{ fontSize: '0.7rem', fontFamily: 'monospace', color: 'var(--clay-text-secondary)' }}>
+                    {(currentNotice.digest || currentNotice.notice_hash) ? (currentNotice.digest || currentNotice.notice_hash).substring(0, 36) + '...' : 'e3b0c44298fc1c149afbf4c8996fb924...'}
                   </div>
                 </div>
 
@@ -308,8 +320,8 @@ export default function DeficiencyNoticesScreen({
                   <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--clay-text-primary)' }}>
                     {currentNotice.reviewer_name || 'AICTE Scrutiny Officer'}
                   </div>
-                  <div style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700, marginTop: '0.15rem' }}>
-                    Digitally Sealed ✓
+                  <div style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700 }}>
+                    Digitally Sealed & Verifiable ✓
                   </div>
                 </div>
               </div>
@@ -325,19 +337,35 @@ export default function DeficiencyNoticesScreen({
       {/* Generate Notice Modal */}
       {isGenerateOpen && (
         <div className="modal-overlay">
-          <div className="modal-content-clay" style={{ maxWidth: '620px' }}>
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--clay-text-primary)', marginBottom: '0.35rem' }}>
+          <div className="modal-content-clay" style={{ maxWidth: '560px' }}>
+            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--clay-text-primary)', marginBottom: '0.3rem' }}>
               Draft Statutory Deficiency Notice
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--clay-text-secondary)', marginBottom: '1.25rem' }}>
-              Create an official inquiry letter requiring an institution to rectify identified compliance deficiencies.
+              Create an official AICTE inquiry memo populated with verified compliance findings.
             </p>
 
             <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
               {/* Institution / Application Selection */}
               <div>
                 <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--clay-text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
-                  Target Institution / Application: <span style={{ color: '#ef4444' }}>*</span>
+                  Target Institution / Application:
+                </label>
+                <select
+                  value={selectedAppId}
+                  onChange={(e) => setSelectedAppId(e.target.value)}
+                  className="clay-input-clean"
+                  style={{ width: '100%', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                >
+                  <option value="APP-CASE-B">Case B — Bharat College of Engineering (Deficient / Expired NOC)</option>
+                  <option value="APP-CASE-C">Case C — Chitkara Institute of Technology (Intake Conflict & Duplicate)</option>
+                  <option value="APP-CASE-A">Case A — Apex Institute of Technology (Consistent)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--clay-text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
+                  Specific Clarifications / Rectification Directives:
                 </label>
                 <div className="clay-well" style={{ padding: '0.25rem 0.5rem' }}>
                   {applications.length > 0 ? (
@@ -383,14 +411,10 @@ export default function DeficiencyNoticesScreen({
                   <textarea
                     rows={5}
                     value={clarificationsNote}
-                    onChange={(e) => {
-                      setClarificationsNote(e.target.value);
-                      if (validationError) setValidationError('');
-                    }}
-                    placeholder="Enter the specific directives and requirements the college must fulfill (e.g., Provide registered partition deed for Block A and recruit 6 verified faculty members before intake approval)..."
+                    onChange={(e) => setClarificationsNote(e.target.value)}
+                    placeholder="Enter instructions for college (e.g., Provide registered partition deed for Block A and recruit required faculty before approval)..."
                     className="clay-input-clean"
-                    style={{ resize: 'vertical', width: '100%', lineHeight: 1.5 }}
-                    required
+                    style={{ resize: 'vertical', width: '100%' }}
                   />
                 </div>
 

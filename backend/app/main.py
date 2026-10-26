@@ -45,7 +45,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="ClaimGraph-AICTE API",
-    description="SIH 2026, PS5: AI-Powered Application & Document Validation for AICTE",
+    description="Statutory Compliance & AI-Powered Document Validation for AICTE Approval Process",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -133,7 +133,7 @@ MANDATORY_DOC_TYPES = [
 def get_metadata():
     return {
         "title": "ClaimGraph-AICTE",
-        "competition": "SIH 2026, PS5",
+        "statutory_framework": "AICTE Approval Process Handbook (APH)",
         "subtitle": "AI-Powered Application & Document Validation for AICTE",
         "demo_date": DEMO_DATE,
         "synthetic_banner": SYNTHETIC_BANNER,
@@ -1052,7 +1052,14 @@ def record_reviewer_action(finding_id: str, payload: ReviewerActionCreate, db=De
         "Referred for further verification or inspection"
     ]
 
-    action_input = payload.action.strip()
+    action_aliases = {
+        "clarification requested from institution": "Additional evidence required",
+        "clarification requested": "Additional evidence required",
+        "ask proof": "Additional evidence required",
+        "additional evidence": "Additional evidence required"
+    }
+    action_raw = payload.action.strip()
+    action_input = action_aliases.get(action_raw.lower(), action_raw)
 
     # Block any approve/reject attempt
     if any(forbidden in action_input.lower() for forbidden in ["approve", "reject"]):
