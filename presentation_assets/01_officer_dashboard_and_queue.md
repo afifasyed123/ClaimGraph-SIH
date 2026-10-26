@@ -1,33 +1,49 @@
-# Screenshot 1 Guide — Officer Dashboard and Application Scrutiny Queue
+# Screenshot 1 Guide — Officer Dashboard & Scrutiny Queue
+**Demo Video Reference**: Scene 2 `[0:25 – 0:50]` (25 seconds)
+
+---
 
 ## Purpose
-Demonstrates the entry point and task-oriented scrutiny register used by government scrutiny officers to manage, filter, and track technical institution applications for Extension of Approval (EoA).
+Demonstrates the primary task-oriented workspace used by AICTE scrutiny officers. Eliminates vanity charts in favor of an actionable, filterable regulatory queue showing pre-loaded evaluation cases (Apex, Bharat, Chitkara, Vidya Vihar campus institutions).
 
-## Target Route & Navigation Steps
+---
+
+## Route & Navigation Steps
 1. Navigate to: `http://localhost:5173/`
-2. If at login screen, select **"Reviewer"** role and click **"Open Review Dashboard"** (or click **"Case C: Discrepancy & Campus Sharing"**).
-3. The **Institutional Compliance & Scrutiny Dashboard** displays.
+2. At the portal entry screen, select **"Reviewer"** role and click **"Open Review Dashboard"** (or use the one-click shortcut **"Case C: Discrepancy & Campus Sharing"**).
+3. The **Institutional Scrutiny Dashboard** loads.
 
-## Recommended Desktop Viewport & Screen Framing
-- **Recommended Viewport**: 1920 × 1080 (or 1440 × 900 desktop standard)
+---
+
+## Recommended Desktop Viewport & Framing
+- **Viewport**: 1920 × 1080 (or 1440 × 900 desktop standard)
 - **Framing Composition**:
-  - Top: Official sticky navigation bar with saffron tricolor accent line, Ministry Navy brand, and live **"Compliance Engine · Active"** pulsing dot.
-  - Middle: Four task-oriented metrics:
-    - **Registered Applications**: 5
-    - **Action Required**: 2 (Chitkara Institute 480 vs 360 mismatch, Bharat College expired NOC)
-    - **Shared Campus Alerts**: 2 (Vidya Vihar campus physical facility & faculty sharing)
-    - **Deficiency Notices**: 2 pre-seeded formal statutory notices
-  - Lower Middle: Live **Institutional Scrutiny Queue** data table:
-    - Search bar with filter pills: `All (5)`, `Requires Action (2)`, `Verified Compliant (1)`, `Shared Campus`.
-    - Rows displaying:
-      - `AICTE/2026/ENGG-001` · **Apex Institute of Technology** · 🟢 Verified Compliant (SFR 1:12.5 met)
-      - `AICTE/2026/ENGG-002` · **Bharat College of Engineering** · 🟡 Deficiency Detected (Expired Fire NOC)
-      - `AICTE/2026/ENGG-003` · **Chitkara Institute of Technology** · 🔴 Discrepancy Detected (480 claimed vs 360 resolution)
-      - `AICTE/2026/PHARM-001` · **Vidya College of Pharmacy** · 🟣 Campus Sharing Alert
-      - `AICTE/2026/MGMT-001` · **Vidya Institute of Management** · 🟣 Campus Sharing Alert
-  - Action button: Highlight the blue **"Open Workspace"** button on Chitkara Institute.
+  - **Top Navigation Bar**:
+    - Ministry Navy `#0F172A` theme with Indian saffron `#FF9933` top accent line.
+    - AICTE institutional brand & live status: **"Compliance Engine · Active"** pulsing dot.
+    - Compact tab pills: `Dashboard`, `Scrutiny`, `Campus`, `Simulator`, `Notices`, `Audit Chain`.
+    - Officer identity: `Priya Sharma · Scrutiny Reviewer`.
+  - **Top Metric Cards** (4 task-oriented stat tiles):
+    - **Registered Applications**: `5`
+    - **Action Required**: `2` (highlighted in soft red: Chitkara 480 vs 360, Bharat expired NOC)
+    - **Shared Campus Alerts**: `2` (highlighted in soft purple: Vidya Vihar campus)
+    - **Deficiency Notices**: `2` (highlighted in soft amber: pre-seeded formal notices)
+  - **Institutional Scrutiny Queue** (Floating card table):
+    - Filter pills: `All (5)`, `Requires Action (2)`, `Verified Compliant (1)`, `Shared Campus`.
+    - Search input field: active query for instant live client-side filtering.
+    - 5-Column Streamlined Table Structure:
+      1. **Application ID & Type**: `AICTE/2026/ENGG-003` · `Extension of Approval (EoA)`
+      2. **Institution Details**: `Chitkara Institute of Technology` · `Engineering & Technology (UG/PG)` · `Punjab`
+      3. **Scrutiny Status**: `🔴 Discrepancy Detected`
+      4. **Flags & Alerts**: `Intake Mismatch (480 vs 360)` · `Shared Campus Alert`
+      5. **Actions**: High-contrast blue button **"Open Workspace"**
 
-## Presentation Talking Points for PPT Slide
-- **Task-Oriented vs Chart-Oriented**: Focuses strictly on actionable regulatory queues rather than vanity charts.
-- **Explainable Discrepancy Badging**: Instantly distinguishes verified compliance, missing documentation, and multi-document contradictions.
-- **Zero Hallucination Guarantee**: All table counts and statistics are pulled directly from the underlying SQLite compliance database and verified handbook rules.
+---
+
+## High-Impact Presentation Talking Points
+- **Task-Oriented vs Decorative**: Designed strictly for regulatory productivity; officers immediately see which institutions require statutory action without digging through menus.
+- **Pre-Loaded Ground-Truth Evaluation Scenarios**: Showcases three authentic regulatory profiles:
+  - **Case A (Apex Institute)**: 🟢 100% Verified Compliant (SFR 1:12.5 verified, zero deficiencies).
+  - **Case B (Bharat College)**: 🟡 Missing Mandatory Document (expired Fire Safety NOC).
+  - **Case C (Chitkara Institute)**: 🔴 Multi-Document Intake Contradiction & Cross-Campus Contradiction.
+- **Zero-Hallucination Architecture**: All numbers, statuses, and counts are computed live from the SQLite backend database, backed by the AICTE Approval Process Handbook (APH) rules engine.
