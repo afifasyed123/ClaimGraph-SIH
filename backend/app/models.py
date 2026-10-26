@@ -79,9 +79,9 @@ class CampusSimulationRequest(BaseModel):
     facility_repartition: Optional[str] = None # 'partition_600_600', 'full_apex', 'full_mgmt', or 'unchanged'
 
 class DeficiencyNoticeCreate(BaseModel):
-    application_id: str
+    application_id: str = Field(..., min_length=1, description="Target Application ID")
     reviewer_name: Optional[str] = "AICTE Scrutiny Officer"
-    clarifications_note: Optional[str] = ""
+    clarifications_note: str = Field(..., min_length=1, description="Specific clarifications or rectification instructions required from the institution")
 
 class RuleToggleRequest(BaseModel):
     is_active: bool

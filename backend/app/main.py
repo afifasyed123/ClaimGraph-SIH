@@ -1440,14 +1440,28 @@ def list_notices():
 @app.post("/api/notices/generate")
 def create_deficiency_notice(payload: DeficiencyNoticeCreate):
     """Generate formal evidence-linked deficiency notice"""
+    app_id = (payload.application_id or "").strip()
+    if not app_id:
+        raise HTTPException(
+            status_code=422,
+            detail="Application ID is required to generate a deficiency notice."
+        )
+    note = (payload.clarifications_note or "").strip()
+    if not note:
+        raise HTTPException(
+            status_code=422,
+            detail="Clarifications note cannot be empty. Please provide specific deficiency rectification instructions."
+        )
     try:
         return generate_deficiency_notice(
-            application_id=payload.application_id,
+            application_id=app_id,
             reviewer_name=payload.reviewer_name or "AICTE Scrutiny Officer",
-            clarifications_note=payload.clarifications_note or ""
+            clarifications_note=note
         )
-    except Exception as e:
+    except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/notices/{notice_id}")
 def get_notice(notice_id: str):

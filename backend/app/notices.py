@@ -64,11 +64,11 @@ def generate_deficiency_notice(
 
     qr_verification_url = f"/api/reports/verify/{notice_id}"
 
-    clarifications = clarifications_note or (
-        "1. Submit original notarized Governing Body resolution approving intake expansion.\n"
-        "2. Provide biometric staff roster and Form 16 / bank disbursement proofs.\n"
-        "3. Upload valid Municipal Fire Safety NOC renewed for the current academic session."
-    )
+    note = (clarifications_note or "").strip()
+    if not note:
+        raise ValueError("Clarifications note cannot be empty. Specific deficiency rectification instructions are required.")
+
+    clarifications = note
 
     with get_db_context() as conn:
         cursor = conn.cursor()

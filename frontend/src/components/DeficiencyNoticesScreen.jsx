@@ -8,11 +8,17 @@ import {
   CheckCircle2, 
   Sparkles,
   Building2,
-  Calendar
+  Calendar,
+  AlertTriangle,
+  Copy,
+  Check,
+  Lock,
+  FileCheck
 } from 'lucide-react';
 
 export default function DeficiencyNoticesScreen({
   notices = [],
+  applications = [],
   onGenerateNotice,
   activeApplication,
   onVerifyReport
@@ -21,7 +27,24 @@ export default function DeficiencyNoticesScreen({
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
   const [selectedAppId, setSelectedAppId] = useState(activeApplication?.id || 'APP-CASE-B');
   const [clarificationsNote, setClarificationsNote] = useState('');
+  const [validationError, setValidationError] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [copiedHash, setCopiedHash] = useState(false);
+
+  const handleOpenModal = () => {
+    setTargetAppId(activeApplication?.id || (applications.length > 0 ? applications[0].id : 'APP-CASE-C'));
+    setValidationError('');
+    setIsGenerateOpen(true);
+  };
+
+  const handleLoadTemplate = () => {
+    setClarificationsNote(
+      "1. Submit original notarized Governing Body resolution regarding the proposed intake expansion.\n" +
+      "2. Provide biometric staff roster, Form 16, and bank salary disbursement statements for faculty.\n" +
+      "3. Upload valid Municipal Fire Safety NOC renewed for the current academic session."
+    );
+    setValidationError('');
+  };
 
   React.useEffect(() => {
     if (!selectedNotice && notices.length > 0) {
@@ -31,7 +54,19 @@ export default function DeficiencyNoticesScreen({
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
+    const trimmed = clarificationsNote.trim();
+    if (!trimmed) {
+      setValidationError('Clarifications note cannot be empty. Please specify the required instructions or rectifications.');
+      return;
+    }
+    const chosenAppId = targetAppId || activeApplication?.id || (applications.length > 0 ? applications[0].id : 'APP-CASE-C');
+    if (!chosenAppId) {
+      setValidationError('Please select a target application/institution.');
+      return;
+    }
+
     setIsGenerating(true);
+    setValidationError('');
     try {
       const newNotice = await onGenerateNotice({
         application_id: selectedAppId || activeApplication?.id || 'APP-CASE-B',
@@ -41,6 +76,7 @@ export default function DeficiencyNoticesScreen({
       setIsGenerateOpen(false);
       setClarificationsNote('');
     } catch (err) {
+      setValidationError(err.message || 'Failed to issue deficiency notice.');
       console.error(err);
     } finally {
       setIsGenerating(false);
@@ -48,6 +84,17 @@ export default function DeficiencyNoticesScreen({
   };
 
   const currentNotice = selectedNotice || (notices.length > 0 ? notices[0] : null);
+  const activeHash = currentNotice?.notice_hash || currentNotice?.digest;
+
+  const handleCopyHash = (hashText) => {
+    if (!hashText) return;
+    navigator.clipboard.writeText(hashText);
+    setCopiedHash(true);
+    setTimeout(() => setCopiedHash(false), 2000);
+  };
+
+  // Find target app object for display
+  const chosenAppObj = applications.find(a => a.id === targetAppId) || activeApplication;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
@@ -69,7 +116,7 @@ export default function DeficiencyNoticesScreen({
 
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <button
-              onClick={() => setIsGenerateOpen(true)}
+              onClick={handleOpenModal}
               className="clay-btn-pill clay-btn-blue"
             >
               <Plus size={16} />
@@ -134,10 +181,10 @@ export default function DeficiencyNoticesScreen({
                       {n.status || 'Issued'}
                     </span>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Right Column: Clean Official Notice Document View */}
@@ -166,7 +213,7 @@ export default function DeficiencyNoticesScreen({
                     title="Verify Cryptographic Seal & Authenticity"
                   >
                     <QrCode size={15} color="var(--clay-blue-primary)" />
-                    <span>Verify QR</span>
+                    <span>Verify Seal</span>
                   </button>
                   <button
                     onClick={() => window.print()}
@@ -248,6 +295,18 @@ export default function DeficiencyNoticesScreen({
                 ))}
               </div>
 
+              {/* Officer Directives & Clarifications Requested */}
+              {currentNotice.clarifications_requested && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.25rem' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--clay-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                    Officer Directive & Clarifications Requested:
+                  </div>
+                  <div className="clay-well" style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.85rem 1rem', fontSize: '0.82rem', color: '#92400e', whiteSpace: 'pre-line', lineHeight: 1.55 }}>
+                    {currentNotice.clarifications_requested}
+                  </div>
+                </div>
+              )}
+
               {/* Digital Seal & Sign-off */}
               <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div>
@@ -286,7 +345,8 @@ export default function DeficiencyNoticesScreen({
               Create an official AICTE inquiry memo populated with verified compliance findings.
             </p>
 
-            <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+              {/* Institution / Application Selection */}
               <div>
                 <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--clay-text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
                   Target Institution / Application:
@@ -307,9 +367,49 @@ export default function DeficiencyNoticesScreen({
                 <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--clay-text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
                   Specific Clarifications / Rectification Directives:
                 </label>
+                <div className="clay-well" style={{ padding: '0.25rem 0.5rem' }}>
+                  {applications.length > 0 ? (
+                    <select
+                      value={targetAppId}
+                      onChange={(e) => setTargetAppId(e.target.value)}
+                      className="clay-input-clean"
+                      style={{ width: '100%', padding: '0.5rem', background: 'transparent', fontWeight: 600, color: 'var(--clay-text-primary)' }}
+                    >
+                      {applications.map(app => (
+                        <option key={app.id} value={app.id}>
+                          {app.name} ({app.reference || app.id})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div style={{ padding: '0.5rem', fontSize: '0.85rem', fontWeight: 600 }}>
+                      {chosenAppObj?.name || 'Bharat College of Engineering'} ({chosenAppObj?.reference || 'APP-CASE-C'})
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Rectification Note */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--clay-text-secondary)' }}>
+                    Specific Clarifications / Rectification Directives: <span style={{ color: '#ef4444' }}>* (Required)</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleLoadTemplate}
+                    className="clay-btn-pill clay-btn-white"
+                    style={{ fontSize: '0.72rem', padding: '0.2rem 0.6rem' }}
+                    title="Insert standard AICTE compliance notice directives"
+                  >
+                    <FileText size={12} color="var(--clay-blue-primary)" />
+                    <span>Insert Standard Template</span>
+                  </button>
+                </div>
+
                 <div className="clay-well">
                   <textarea
-                    rows={4}
+                    rows={5}
                     value={clarificationsNote}
                     onChange={(e) => setClarificationsNote(e.target.value)}
                     placeholder="Enter instructions for college (e.g., Provide registered partition deed for Block A and recruit required faculty before approval)..."
@@ -317,8 +417,32 @@ export default function DeficiencyNoticesScreen({
                     style={{ resize: 'vertical', width: '100%' }}
                   />
                 </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.35rem', fontSize: '0.72rem', color: 'var(--clay-text-muted)' }}>
+                  <span>Must not be left blank. These directives are cryptographically sealed into the notice.</span>
+                  <span>{clarificationsNote.trim().length} characters</span>
+                </div>
               </div>
 
+              {/* Validation Error Banner */}
+              {validationError && (
+                <div style={{
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  padding: '0.65rem 0.9rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  color: '#b91c1c',
+                  fontSize: '0.82rem'
+                }}>
+                  <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+                  <span>{validationError}</span>
+                </div>
+              )}
+
+              {/* Action Buttons */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button
                   type="button"
@@ -329,8 +453,13 @@ export default function DeficiencyNoticesScreen({
                 </button>
                 <button
                   type="submit"
-                  disabled={isGenerating}
+                  disabled={isGenerating || !clarificationsNote.trim()}
                   className="clay-btn-pill clay-btn-blue"
+                  style={{
+                    opacity: (!clarificationsNote.trim() || isGenerating) ? 0.6 : 1,
+                    cursor: (!clarificationsNote.trim() || isGenerating) ? 'not-allowed' : 'pointer'
+                  }}
+                  title={!clarificationsNote.trim() ? "Please write clarification directives to enable submission" : ""}
                 >
                   <Plus size={16} />
                   <span>{isGenerating ? 'Generating...' : 'Issue Notice'}</span>
